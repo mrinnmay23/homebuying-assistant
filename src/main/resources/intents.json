@@ -1,0 +1,46 @@
+{
+  "GREETING": [
+    "Hi",
+    "Hello",
+    "Hey there",
+    "Good morning"
+  ],
+  "GET_QUOTES": [
+    "Show me quotes for a 700 credit score",
+    "What rates can I get with a 720 FICO?",
+    "I have a 680 score, what mortgage can I afford?"
+  ],
+  "LOAN_CALCULATOR": [
+    "Calculate my payment on $300k at 4.2% over 30 years",
+    "How much is monthly payment for $200k 15-year loan?"
+  ],
+  "REFINANCE_CHECK": [
+    "Should I refinance if rates drop half a percent?",
+    "When should I refinance my mortgage?"
+  ],
+  "PDF_UPLOAD": [
+    "I want to upload my Loan Estimate PDF",
+    "Here’s my loan doc—can you read it?"
+  ],
+  "AGENT_LOOKUP": [
+    "Connect me to an agent in Seattle",
+    "Find me a local mortgage broker",
+    "Find me agent id 42"
+  ],
+
+  "OFFER_SCORE": [
+    "How does my offer compare to others?",
+    "What percentile is my rate and fees in?"
+  ],
+
+  "AMORTIZATION": [
+    "Show me an amortization schedule for $250k at 4% over 30 years",
+    "Give me the yearly breakdown of principal and interest"
+  ],
+
+  "FALLBACK": [
+    "What is APR?",
+    "Explain mortgage amortization",
+    "How does interest work?"
+  ]
+}
