@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:replace="~{::title}">Homebuying Assistant</title>
+</head>
+<body>
+<nav>
+    <a th:href="@{/}">Chat</a> |
+    <a th:href="@{/quotes}">Quotes</a> |
+    <a th:href="@{/calculator}">Calculator</a> |
+    <a th:href="@{/score}">Offer Score</a> |
+    <a th:href="@{/amortization}">Amortization</a> |
+    <a th:href="@{/refinance}">Refinance</a> |
+    <a th:href="@{/upload-pdf}">PDF Upload</a> |
+    <a th:href="@{/agent}">Agent Lookup</a>
+</nav>
+<section th:replace="~{::section}">[content]</section>
+</body>
+</html>

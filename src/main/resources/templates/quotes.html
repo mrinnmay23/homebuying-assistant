@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:insert="layout :: layout(~{::title},~{::section})">
+<title>Get Mortgage Quotes</title>
+<section>
+    <h1>Get Quotes</h1>
+    <form id="quotes-form">
+        <input id="score" placeholder="Credit score (e.g. 700)" />
+        <button type="submit">Get Quotes</button>
+    </form>
+    <pre id="out"></pre>
+    <script>
+        document.getElementById('quotes-form')
+            .addEventListener('submit', async e => {
+                e.preventDefault();
+                const score = document.getElementById('score').value;
+                const res = await fetch('/api', {
+                    method:'POST',
+                    headers:{'Content-Type':'application/json'},
+                    body: JSON.stringify({ message:`Show me quotes for a ${score} credit score` })
+                });
+                const body = await res.json();
+                document.getElementById('out').textContent = JSON.stringify(body.quotes, null,2);
+            });
+    </script>
+</section>
+</html>
