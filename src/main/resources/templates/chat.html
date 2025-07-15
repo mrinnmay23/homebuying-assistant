@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <title>Mortgage Chatbot</title>
+</head>
+<body>
+<h1>Mortgage Chatbot</h1>
+
+<form id="chat-form">
+    <input
+            type="text"
+            id="msg"
+            placeholder="Type your question…"
+            autocomplete="off"
+            style="width: 300px;"
+    />
+    <button type="submit">Send</button>
+</form>
+
+<pre id="log" style="margin-top: 1em; background: #f5f5f5; padding: 1em;"></pre>
+
+<!-- inline script to catch the submit and POST via fetch -->
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    const form = document.getElementById('chat-form');
+    const log  = document.getElementById('log');
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();                          // stop real navigation
+        const msg = document.getElementById('msg').value.trim();
+        if (!msg) return;
+
+        // show user message
+        log.textContent += `You: ${msg}\n`;
+
+        // fire a POST /api
+        const resp = await fetch(/*[[ @{/api} ]]*/, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message: msg })
+        });
+
+        const body = await resp.json();
+        log.textContent += `Bot: ${JSON.stringify(body)}\n\n`;
+
+        // clear input
+        document.getElementById('msg').value = '';
+    });
+    /*]]>*/
+</script>
+</body>
+</html>
