@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"><title>Offer Score</title></head>
+<body>
+<h1>Offer Score</h1>
+<a th:href="@{/}">&larr; Home</a>
+<form id="form">
+    <label>Rate (%): <input id="rate" type="number" step="0.01"/></label><br/>
+    <label>Fees:     <input id="fees" type="number" step="0.01"/></label><br/>
+    <button>Compute</button>
+</form>
+<pre id="out"></pre>
+
+<script>
+    document.getElementById('form').addEventListener('submit', async e=>{
+        e.preventDefault();
+        const r = document.getElementById('rate').value,
+            f = document.getElementById('fees').value;
+        const res = await fetch(`/api/score?rate=${r}&fees=${f}`);
+        const ans = await res.json();
+        document.getElementById('out').textContent = JSON.stringify(ans, null, 2);
+    });
+</script>
+</body>
+</html>

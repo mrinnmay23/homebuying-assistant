@@ -6,7 +6,7 @@
 </head>
 <body>
 <h1>Mortgage Chatbot</h1>
-
+<a th:href="@{/}">&larr; Home</a>
 <form id="chat-form">
     <input
             type="text"
@@ -44,10 +44,43 @@
         const body = await resp.json();
         log.textContent += `Bot: ${JSON.stringify(body)}\n\n`;
 
+
         // clear input
         document.getElementById('msg').value = '';
     });
     /*]]>*/
 </script>
+
+<!--<script th:inline="javascript">-->
+<!--    /*<![CDATA[*/-->
+<!--    const form = document.getElementById('chat-form');-->
+<!--    const log  = document.getElementById('log');-->
+
+<!--    form.addEventListener('submit', async (e) => {-->
+<!--        e.preventDefault();-->
+<!--        const msg = document.getElementById('msg').value.trim();-->
+<!--        if (!msg) return;-->
+
+<!--        log.textContent += `You: ${msg}\n`;-->
+
+<!--        const resp = await fetch(/*[[ @{/api} ]]*/, {-->
+<!--            method: 'POST',-->
+<!--            headers: { 'Content-Type': 'application/json' },-->
+<!--            body: JSON.stringify({ message: msg })-->
+<!--        });-->
+
+<!--        const body = await resp.json();-->
+
+<!--        // Only show the `reply` field.-->
+<!--        const botText = body.reply || "Sorry, I didn't get a reply from the bot.";-->
+
+<!--        log.textContent += `Bot: ${botText}\n\n`;-->
+<!--        document.getElementById('msg').value = '';-->
+<!--    });-->
+<!--    /*]]>*/-->
+<!--</script>-->
+
+
+
 </body>
 </html>

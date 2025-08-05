@@ -1,20 +1,63 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title th:replace="~{::title}">Homebuying Assistant</title>
+    <meta charset="UTF-8" />
+    <title th:fragment="title">Homebuying Assistant</title>
+
+    <!-- Bootstrap core CSS -->
+    <link
+            href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css"
+            rel="stylesheet"
+            integrity="sha384-YS3Z8r1WuwiEk9WUBbk3dRivpmw1O0sRhN9+G8F5xK3vjkPxQ1peYhpAZzsj0v5c"
+            crossorigin="anonymous"
+    />
+    <link
+            href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.1/dist/cosmo/bootstrap.min.css"
+            rel="stylesheet"
+            integrity="sha384-lmOVcmqQ/2x6j9ZPPcNRU8iAs64IYkTqpJil0y3eAenm+6lWeDF2V1zE0bRbfZqD"
+            crossorigin="anonymous"
+    />
+    <script
+            src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-ho+j7jyWK8fNQe+A12hV+6m+865PfJCm3f1SmY5TXe9wC5j5eVU1qxQFzjIJgLN3"
+            crossorigin="anonymous">
+    </script>
+
 </head>
 <body>
-<nav>
-    <a th:href="@{/}">Chat</a> |
-    <a th:href="@{/quotes}">Quotes</a> |
-    <a th:href="@{/calculator}">Calculator</a> |
-    <a th:href="@{/score}">Offer Score</a> |
-    <a th:href="@{/amortization}">Amortization</a> |
-    <a th:href="@{/refinance}">Refinance</a> |
-    <a th:href="@{/upload-pdf}">PDF Upload</a> |
-    <a th:href="@{/agent}">Agent Lookup</a>
-</nav>
-<section th:replace="~{::section}">[content]</section>
+
+<!-- fragment for the site‐wide navbar -->
+<header th:fragment="header">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" th:href="@{/}">Homebuying Assistant</a>
+            <div class="collapse navbar-collapse">
+                <div class="navbar-nav">
+                    <a class="nav-link" th:href="@{/chat}">Chat</a>
+                    <a class="nav-link" th:href="@{/quotes}">Quotes</a>
+                    <a class="nav-link" th:href="@{/calculator}">Calculator</a>
+                    <a class="nav-link" th:href="@{/score}">Offer Score</a>
+                    <a class="nav-link" th:href="@{/amortization}">Amortization</a>
+                    <a class="nav-link" th:href="@{/refinance}">Refinance</a>
+                    <a class="nav-link" th:href="@{/upload-pdf}">PDF Upload</a>
+                    <a class="nav-link" th:href="@{/agent}">Agent Lookup</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+</header>
+
+<!-- main content area -->
+<main class="container mt-4" th:fragment="content">
+    <!-- default fallback if no page provides content -->
+    <p>Welcome to the homebuying assistant.</p>
+</main>
+
+<script
+        src="https://cdn.jsdelivr.net/npm/bootstrap@5.6.0/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-…"
+        crossorigin="anonymous"
+></script>
+
 </body>
 </html>

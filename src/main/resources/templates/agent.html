@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"><title>Agent Lookup</title></head>
+<body>
+<h1>Agent Lookup</h1>
+<a th:href="@{/}">&larr; Home</a>
+<form id="form">
+    <label>Agent ID: <input id="id" type="number"/></label>
+    <button>Lookup</button>
+</form>
+<pre id="out"></pre>
+<script>
+    document.getElementById('form').addEventListener('submit', async e=>{
+        e.preventDefault();
+        const id = document.getElementById('id').value;
+        const res = await fetch(`/api/agents/${id}`);
+        const ans = await res.json();
+        document.getElementById('out').textContent = JSON.stringify(ans, null, 2);
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"><title>Loan Calculator</title></head>
+<body>
+<h1>Loan Calculator</h1>
+<a th:href="@{/}">&larr; Home</a>
+<form id="form">
+    <label>Principal: <input id="P" type="number" step="0.01"/></label><br/>
+    <label>Rate (%):   <input id="R" type="number" step="0.01"/></label><br/>
+    <label>Term (yr):  <input id="T" type="number"/></label><br/>
+    <button>Calculate</button>
+</form>
+<pre id="out"></pre>
+
+<script>
+    document.getElementById('form').addEventListener('submit', async e=>{
+        e.preventDefault();
+        const P = document.getElementById('P').value,
+            R = document.getElementById('R').value,
+            T = document.getElementById('T').value;
+        const res = await fetch(`/api/calculate?principal=${P}&rate=${R}&term=${T}`);
+        const ans = await res.json();
+        document.getElementById('out').textContent = JSON.stringify(ans, null, 2);
+    });
+</script>
+</body>
+</html>

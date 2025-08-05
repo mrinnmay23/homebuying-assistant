@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"><title>Refinance Check</title></head>
+<body>
+<h1>Refinance Check</h1>
+<a th:href="@{/}">&larr; Home</a>
+<form id="form">
+    <label>Principal:    <input id="P" type="number" step="0.01"/></label><br/>
+    <label>Current Rate: <input id="CR" type="number" step="0.01"/></label><br/>
+    <label>New Rate:     <input id="NR" type="number" step="0.01"/></label><br/>
+    <label>Term (yr):    <input id="T" type="number"/></label><br/>
+    <button>Estimate</button>
+</form>
+<pre id="out"></pre>
+<script>
+    document.getElementById('form').addEventListener('submit', async e=>{
+        e.preventDefault();
+        const P  = document.getElementById('P').value,
+            CR = document.getElementById('CR').value,
+            NR = document.getElementById('NR').value,
+            T  = document.getElementById('T').value;
+        const res = await fetch(`/api/refinance?principal=${P}&currentRate=${CR}&newRate=${NR}&term=${T}`);
+        const ans = await res.json();
+        document.getElementById('out').textContent = JSON.stringify(ans, null, 2);
+    });
+</script>
+</body>
+</html>

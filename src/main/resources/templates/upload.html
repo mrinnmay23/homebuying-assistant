@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"><title>Upload Loan PDF</title></head>
+<body>
+<h1>Upload Loan Estimate PDF</h1>
+<a th:href="@{/}">&larr; Home</a>
+<form id="form" enctype="multipart/form-data">
+    <input type="file" name="file" accept="application/pdf"/><br/>
+    <button>Upload</button>
+</form>
+<pre id="out"></pre>
+<script>
+    document.getElementById('form').addEventListener('submit', async e=>{
+        e.preventDefault();
+        const fd = new FormData(e.target);
+        const res = await fetch('/api/pdf/upload', {
+            method: 'POST',
+            body: fd
+        });
+        const ans = await res.json();
+        document.getElementById('out').textContent = JSON.stringify(ans, null, 2);
+    });
+</script>
+</body>
+</html>
