@@ -27,31 +27,117 @@
 <!--</html>-->
 
 
+
+
+
+<!--<!DOCTYPE html>-->
+<!--<html xmlns:th="http://www.thymeleaf.org" lang="en">-->
+<!--<head>-->
+<!--    <meta charset="UTF-8">-->
+<!--    <title>Loan Calculator</title>-->
+<!--    <link-->
+<!--            href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.2/dist/cosmo/bootstrap.min.css"-->
+<!--            rel="stylesheet"/>-->
+<!--    <style>-->
+<!--        body {-->
+<!--            background: url('/images/background.jpg') no-repeat center center fixed;-->
+<!--            background-size: cover;-->
+<!--        }-->
+<!--        .calc-card {-->
+<!--            background: rgba(255,255,255,0.9);-->
+<!--            padding: 2rem;-->
+<!--            border-radius: .5rem;-->
+<!--            max-width: 600px;-->
+<!--            margin: 2rem auto;-->
+<!--        }-->
+<!--    </style>-->
+<!--</head>-->
+<!--<body class="bg-light">-->
+
+<!--&lt;!&ndash;<nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-4">&ndash;&gt;-->
+<!--<nav class="navbar navbar-expand-lg bg-transparent mb-4">-->
+<!--    <div class="container">-->
+<!--        <a class="navbar-brand" th:href="@{/}">Homebuying Assistant</a>-->
+<!--        <div class="navbar-nav">-->
+<!--            <a class="nav-link" th:href="@{/chat}">Chat</a>-->
+<!--            <a class="nav-link" th:href="@{/quotes}">Quotes</a>-->
+<!--            <a class="nav-link active" th:href="@{/calculator}">Calculator</a>-->
+<!--        </div>-->
+<!--    </div>-->
+<!--</nav>-->
+
+<!--<div class="container">-->
+<!--    <a th:href="@{/}" class="btn btn-outline-secondary mb-3">← Home</a>-->
+
+<!--    <div class="calc-card">-->
+<!--        <h2 class="mb-4">Loan Calculator</h2>-->
+<!--        <form id="calc-form" class="row g-3 mb-3">-->
+<!--            <div class="col-md-4">-->
+<!--                <input id="P" type="number" step="0.01" min="0"-->
+<!--                       class="form-control" placeholder="Principal" required>-->
+<!--            </div>-->
+<!--            <div class="col-md-4">-->
+<!--                <input id="R" type="number" step="0.01" min="0"-->
+<!--                       class="form-control" placeholder="Rate (%)" required>-->
+<!--            </div>-->
+<!--            <div class="col-md-4">-->
+<!--                <input id="T" type="number" min="1"-->
+<!--                       class="form-control" placeholder="Term (yr)" required>-->
+<!--            </div>-->
+<!--            <div class="col-12 text-center">-->
+<!--                <button type="submit" class="btn btn-primary">Calculate</button>-->
+<!--            </div>-->
+<!--        </form>-->
+
+<!--        <div id="result" class="alert alert-info" style="display:none;"></div>-->
+<!--    </div>-->
+<!--</div>-->
+
+<!--<script-->
+<!--        src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js">-->
+<!--</script>-->
+
+<!--&lt;!&ndash; plain JS, no Thymeleaf inlining &ndash;&gt;-->
+<!--<script>-->
+<!--    const form   = document.getElementById('calc-form'),-->
+<!--        result = document.getElementById('result');-->
+
+<!--    form.addEventListener('submit', async e => {-->
+<!--        e.preventDefault();-->
+<!--        const P = document.getElementById('P').value,-->
+<!--            R = document.getElementById('R').value,-->
+<!--            T = document.getElementById('T').value;-->
+
+<!--        const url = `/api/calculate?principal=${encodeURIComponent(P)}`-->
+<!--            + `&rate=${encodeURIComponent(R)}`-->
+<!--            + `&term=${encodeURIComponent(T)}`;-->
+
+<!--        const resp = await fetch(url);-->
+<!--        const body = await resp.json();-->
+
+<!--        result.style.display = 'block';-->
+<!--        result.textContent   = `Your monthly payment is $${body.monthlyPayment.toFixed(2)}`;-->
+<!--    });-->
+<!--</script>-->
+<!--</body>-->
+<!--</html>-->
+
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="en">
 <head>
     <meta charset="UTF-8">
     <title>Loan Calculator</title>
-    <link
-            href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.2/dist/cosmo/bootstrap.min.css"
-            rel="stylesheet"/>
+    <link href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.2/dist/cosmo/bootstrap.min.css" rel="stylesheet"/>
     <style>
         body {
             background: url('/images/background.jpg') no-repeat center center fixed;
             background-size: cover;
         }
-        .calc-card {
-            background: rgba(255,255,255,0.9);
-            padding: 2rem;
-            border-radius: .5rem;
-            max-width: 600px;
-            margin: 2rem auto;
-        }
+        .calc-card { background: rgba(255,255,255,0.9); padding: 2rem; border-radius: .5rem; max-width: 900px; margin: 2rem auto; }
     </style>
 </head>
 <body class="bg-light">
 
-<!--<nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-4">-->
 <nav class="navbar navbar-expand-lg bg-transparent mb-4">
     <div class="container">
         <a class="navbar-brand" th:href="@{/}">Homebuying Assistant</a>
@@ -68,53 +154,131 @@
 
     <div class="calc-card">
         <h2 class="mb-4">Loan Calculator</h2>
+
         <form id="calc-form" class="row g-3 mb-3">
-            <div class="col-md-4">
-                <input id="P" type="number" step="0.01" min="0"
-                       class="form-control" placeholder="Principal" required>
+            <div class="col-md-3">
+                <input id="P" type="number" step="0.01" min="0" class="form-control" placeholder="Principal" required>
             </div>
-            <div class="col-md-4">
-                <input id="R" type="number" step="0.01" min="0"
-                       class="form-control" placeholder="Rate (%)" required>
+            <div class="col-md-3">
+                <input id="R" type="number" step="0.01" min="0" class="form-control" placeholder="Rate (%)" required>
             </div>
-            <div class="col-md-4">
-                <input id="T" type="number" min="1"
-                       class="form-control" placeholder="Term (yr)" required>
+            <div class="col-md-3">
+                <input id="T" type="number" min="1" class="form-control" placeholder="Term (yr)" required>
             </div>
+
+            <!-- compare toggle -->
+            <div class="col-md-3 d-flex align-items-center">
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="compareToggle">
+                    <label class="form-check-label" for="compareToggle">Compare with External API</label>
+                </div>
+            </div>
+
             <div class="col-12 text-center">
                 <button type="submit" class="btn btn-primary">Calculate</button>
             </div>
         </form>
 
-        <div id="result" class="alert alert-info" style="display:none;"></div>
+        <!-- local-only result -->
+        <div id="localOnly" class="alert alert-info" style="display:none;"></div>
+
+        <!-- side-by-side comparison -->
+        <div id="compareRow" class="row g-3" style="display:none;">
+            <div class="col-md-6">
+                <div class="card h-100">
+                    <div class="card-header">Local (Baseline)</div>
+                    <div class="card-body">
+                        <div><strong>Monthly:</strong> <span id="localMonthly">–</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="card h-100">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        External (API Ninjas)
+                        <span id="latencyBadge" class="badge bg-secondary">– ms</span>
+                    </div>
+                    <div class="card-body">
+                        <div><strong>Monthly:</strong> <span id="apiMonthly">–</span></div>
+                        <div class="small text-muted"><strong>Total interest:</strong> <span id="apiInterest">–</span></div>
+                        <div class="small text-muted" id="apiNote"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- delta -->
+        <div id="deltaBox" class="alert alert-warning mt-3" style="display:none;">
+            Δ Monthly: <span id="deltaAbs">–</span> (<span id="deltaPct">–</span>)
+        </div>
     </div>
 </div>
 
-<script
-        src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js">
-</script>
-
-<!-- plain JS, no Thymeleaf inlining -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-    const form   = document.getElementById('calc-form'),
-        result = document.getElementById('result');
+    const form        = document.getElementById('calc-form');
+    const compareTgl  = document.getElementById('compareToggle');
+
+    const localOnly   = document.getElementById('localOnly');
+    const compareRow  = document.getElementById('compareRow');
+    const deltaBox    = document.getElementById('deltaBox');
+
+    // helper setters/formatters
+    const fmt = n => Number(n).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const set = (id, text) => document.getElementById(id).textContent = text;
 
     form.addEventListener('submit', async e => {
         e.preventDefault();
-        const P = document.getElementById('P').value,
-            R = document.getElementById('R').value,
-            T = document.getElementById('T').value;
 
-        const url = `/api/calculate?principal=${encodeURIComponent(P)}`
-            + `&rate=${encodeURIComponent(R)}`
-            + `&term=${encodeURIComponent(T)}`;
+        const P = document.getElementById('P').value.trim();
+        const R = document.getElementById('R').value.trim();
+        const T = document.getElementById('T').value.trim();
 
+        if (!compareTgl.checked) {
+            // Local only
+            const url  = `/api/calculate?principal=${encodeURIComponent(P)}&rate=${encodeURIComponent(R)}&term=${encodeURIComponent(T)}`;
+            const resp = await fetch(url);
+            const body = await resp.json();
+
+            compareRow.style.display = 'none';
+            deltaBox.style.display   = 'none';
+            localOnly.style.display  = 'block';
+            localOnly.textContent    = `Your monthly payment is $${fmt(body.monthlyPayment)}`;
+            return;
+        }
+
+        // Compare with external API
+        const url  = `/api/calculate/compare?principal=${encodeURIComponent(P)}&rate=${encodeURIComponent(R)}&term=${encodeURIComponent(T)}`;
         const resp = await fetch(url);
         const body = await resp.json();
 
-        result.style.display = 'block';
-        result.textContent   = `Your monthly payment is $${body.monthlyPayment.toFixed(2)}`;
+        // show the compare layout
+        localOnly.style.display  = 'none';
+        compareRow.style.display = 'flex';
+
+        set('localMonthly', `$${fmt(body.localMonthly)}`);
+
+        if (body.apiMonthly != null) {
+            set('apiMonthly',   `$${fmt(body.apiMonthly)}`);
+            set('apiInterest',  body.apiTotalInterest != null ? `$${fmt(body.apiTotalInterest)}` : '—');
+            set('latencyBadge', (body.apiLatencyMs ?? '—') + ' ms');
+            document.getElementById('apiNote').textContent = body.note ?? '';
+
+            deltaBox.style.display = 'block';
+            set('deltaAbs', `$${fmt(body.deltaAbs)}`);
+            set('deltaPct', `${fmt(body.deltaPct)}%`);
+        } else {
+            // API failed or unavailable
+            set('apiMonthly',  '—');
+            set('apiInterest', '—');
+            set('latencyBadge','—');
+            document.getElementById('apiNote').textContent = body.note ?? 'External API unavailable.';
+            deltaBox.style.display = 'none';
+        }
     });
 </script>
 </body>
 </html>
+
+
