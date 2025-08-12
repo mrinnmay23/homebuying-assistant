@@ -1,23 +1,138 @@
-<!DOCTYPE html>
-<html>
-<head><meta charset="UTF-8"><title>Get Quotes</title></head>
-<body>
-<h1>Mortgage Quotes</h1>
-<a th:href="@{/}">&larr; Home</a>
-<form id="form">
-    <label>Credit Score: <input id="score" type="number" min="300" max="850"/></label>
-    <button>Get Quotes</button>
-</form>
-<pre id="out"></pre>
+<!--<!DOCTYPE html>-->
+<!--<html>-->
+<!--<head><meta charset="UTF-8"><title>Get Quotes</title></head>-->
+<!--<body>-->
+<!--<h1>Mortgage Quotes</h1>-->
+<!--<a th:href="@{/}">&larr; Home</a>-->
+<!--<form id="form">-->
+<!--    <label>Credit Score: <input id="score" type="number" min="300" max="850"/></label>-->
+<!--    <button>Get Quotes</button>-->
+<!--</form>-->
+<!--<pre id="out"></pre>-->
 
-<script>
-    document.getElementById('form').addEventListener('submit', async e=>{
-        e.preventDefault();
-        const s = document.getElementById('score').value;
-        const res = await fetch('/api/quotes?score='+encodeURIComponent(s));
-        const jokes = await res.json();
-        document.getElementById('out').textContent = JSON.stringify(jokes, null, 2);
-    });
+<!--<script>-->
+<!--    document.getElementById('form').addEventListener('submit', async e=>{-->
+<!--        e.preventDefault();-->
+<!--        const s = document.getElementById('score').value;-->
+<!--        const res = await fetch('/api/quotes?score='+encodeURIComponent(s));-->
+<!--        const jokes = await res.json();-->
+<!--        document.getElementById('out').textContent = JSON.stringify(jokes, null, 2);-->
+<!--    });-->
+<!--</script>-->
+<!--</body>-->
+<!--</html>-->
+
+<!-- src/main/resources/templates/quotes.html -->
+
+
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Mortgage Quotes</title>
+    <link
+            href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.2/dist/cosmo/bootstrap.min.css"
+            rel="stylesheet"/>
+    <style>
+        body {
+            background: url('/images/background.jpg') no-repeat center center fixed;
+            background-size: cover;
+        }
+        .translucent {
+            background: rgba(255,255,255,0.85);
+            padding: 1rem;
+            border-radius: .25rem;
+        }
+    </style>
+</head>
+<body class="bg-light">
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-transparent mb-4">
+    <div class="container">
+        <a class="navbar-brand" th:href="@{/}">Homebuying Assistant</a>
+        <div class="navbar-nav">
+            <a class="nav-link" th:href="@{/chat}">Chat</a>
+            <a class="nav-link active" th:href="@{/quotes}">Quotes</a>
+            <a class="nav-link" th:href="@{/calculator}">Calculator</a>
+            <!-- etc. -->
+        </div>
+    </div>
+</nav>
+
+<div class="container">
+
+    <a th:href="@{/}" class="btn btn-outline-secondary mb-3">
+        ← Home
+    </a>
+
+    <h1 class="mb-4">Mortgage Quotes</h1>
+
+    <div class="row mb-4">
+        <form th:action="@{/quotes}" method="get" class="col-auto row gx-2">
+            <div class="col">
+                <input type="number" name="score"
+                       min="300" max="850"
+                       class="form-control"
+                       placeholder="Credit Score"
+                       th:value="${scoreQuery}" />
+            </div>
+            <div class="col">
+                <button type="submit" class="btn btn-primary">By Score</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="translucent mb-4">
+        <h5>All Stored Quotes</h5>
+        <table class="table table-hover mb-0">
+            <thead>
+            <tr>
+                <th>ID</th><th>Agent ID</th><th>Score Range</th><th>Rate</th><th>Fees</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="q : ${quotes}">
+                <td th:text="${q.id}">1</td>
+                <td th:text="${q.agentId}">1</td>
+                <td>
+                    <span th:text="${q.minScore}">300</span>–
+                    <span th:text="${q.maxScore}">350</span>
+                </td>
+                <td th:text="${q.rate}">7.5</td>
+                <td th:text="${q.fees}">500</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div th:if="${filtered != null}" class="translucent mb-4">
+        <h5 th:text="'Quotes matching score ' + ${scoreQuery}">Filtered</h5>
+        <table class="table table-striped mb-0">
+            <thead>
+            <tr>
+                <th>ID</th><th>Agent ID</th><th>Score Range</th><th>Rate</th><th>Fees</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="q : ${filtered}">
+                <td th:text="${q.id}"></td>
+                <td th:text="${q.agentId}"></td>
+                <td>
+                    <span th:text="${q.minScore}"></span>–
+                    <span th:text="${q.maxScore}"></span>
+                </td>
+                <td th:text="${q.rate}"></td>
+                <td th:text="${q.fees}"></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+</div>
+
+<script
+        src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js">
 </script>
+
 </body>
 </html>

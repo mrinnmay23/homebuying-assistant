@@ -1,26 +1,201 @@
+<!--<!DOCTYPE html>-->
+<!--<html>-->
+<!--<head><meta charset="UTF-8"><title>Amortization</title></head>-->
+<!--<body>-->
+<!--<h1>Amortization Schedule</h1>-->
+<!--<a th:href="@{/}">&larr; Home</a>-->
+<!--<form id="form">-->
+<!--    <label>Principal: <input id="P" type="number" step="0.01"/></label><br/>-->
+<!--    <label>Rate (%):   <input id="R" type="number" step="0.01"/></label><br/>-->
+<!--    <label>Term (yr):  <input id="T" type="number"/></label><br/>-->
+<!--    <button>Show</button>-->
+<!--</form>-->
+<!--<pre id="out"></pre>-->
+<!--<script>-->
+<!--    document.getElementById('form').addEventListener('submit', async e=>{-->
+<!--        e.preventDefault();-->
+<!--        const P = document.getElementById('P').value,-->
+<!--            R = document.getElementById('R').value,-->
+<!--            T = document.getElementById('T').value;-->
+<!--        const res = await fetch(`/api/amortization?principal=${P}&rate=${R}&term=${T}`);-->
+<!--        const ans = await res.json();-->
+<!--        document.getElementById('out').textContent = JSON.stringify(ans, null, 2);-->
+<!--    });-->
+<!--</script>-->
+<!--</body>-->
+<!--</html>-->
+
+
 <!DOCTYPE html>
-<html>
-<head><meta charset="UTF-8"><title>Amortization</title></head>
-<body>
-<h1>Amortization Schedule</h1>
-<a th:href="@{/}">&larr; Home</a>
-<form id="form">
-    <label>Principal: <input id="P" type="number" step="0.01"/></label><br/>
-    <label>Rate (%):   <input id="R" type="number" step="0.01"/></label><br/>
-    <label>Term (yr):  <input id="T" type="number"/></label><br/>
-    <button>Show</button>
-</form>
-<pre id="out"></pre>
-<script>
-    document.getElementById('form').addEventListener('submit', async e=>{
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Amortization Schedule</title>
+
+    <!-- Bootswatch Cosmo theme -->
+    <link
+            href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.2/dist/cosmo/bootstrap.min.css"
+            rel="stylesheet"
+    />
+
+    <style>
+        body {
+            background: url('/images/background.jpg') no-repeat center center fixed;
+            background-size: cover;
+        }
+        .card-transparent {
+            background: rgba(255,255,255,0.85);
+            border-radius: .5rem;
+            padding: 2rem;
+            max-width: 900px;
+            margin: 2rem auto;
+        }
+    </style>
+</head>
+<body class="bg-light">
+
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-4">
+    <div class="container">
+        <a class="navbar-brand" th:href="@{/}">Homebuying Assistant</a>
+        <div class="navbar-nav">
+            <a class="nav-link" th:href="@{/chat}">Chat</a>
+            <a class="nav-link" th:href="@{/quotes}">Quotes</a>
+            <a class="nav-link" th:href="@{/calculator}">Calculator</a>
+            <a class="nav-link" th:href="@{/score}">Offer Score</a>
+            <a class="nav-link" th:href="@{/amortization}" >Amortization</a>
+            <a class="nav-link" th:href="@{/refinance}">Refinance</a>
+        </div>
+    </div>
+</nav>
+
+<div class="container">
+    <a th:href="@{/}" class="btn btn-outline-secondary mb-3">← Home</a>
+
+    <div class="card-transparent">
+        <h2 class="mb-4">Amortization Schedule</h2>
+
+        <!-- Input form -->
+        <form id="amort-form" class="row g-3 mb-4">
+            <div class="col-md-4">
+                <input
+                        id="P"
+                        type="number"
+                        step="0.01"
+                        class="form-control"
+                        placeholder="Principal"
+                        required
+                />
+            </div>
+            <div class="col-md-4">
+                <input
+                        id="R"
+                        type="number"
+                        step="0.01"
+                        class="form-control"
+                        placeholder="Rate (%)"
+                        required
+                />
+            </div>
+            <div class="col-md-4">
+                <input
+                        id="T"
+                        type="number"
+                        class="form-control"
+                        placeholder="Term (years)"
+                        required
+                />
+            </div>
+            <div class="col-12 text-center">
+                <button type="submit" class="btn btn-primary">Show Schedule</button>
+            </div>
+        </form>
+
+        <!-- Chart.js canvas -->
+        <canvas id="amortChart" height="200"></canvas>
+
+        <!-- Table fallback -->
+        <div class="table-responsive mt-4">
+            <table class="table table-striped" id="amort-table">
+                <thead>
+                <tr>
+                    <th>Year</th>
+                    <th>Principal Paid</th>
+                    <th>Interest Paid</th>
+                    <th>Remaining Balance</th>
+                </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script
+        src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
+></script>
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    const form      = document.getElementById('amort-form'),
+        tableBody = document.querySelector('#amort-table tbody'),
+        ctx        = document.getElementById('amortChart').getContext('2d');
+
+    let amortChart;
+
+    form.addEventListener('submit', async e => {
         e.preventDefault();
+
         const P = document.getElementById('P').value,
             R = document.getElementById('R').value,
             T = document.getElementById('T').value;
-        const res = await fetch(`/api/amortization?principal=${P}&rate=${R}&term=${T}`);
-        const ans = await res.json();
-        document.getElementById('out').textContent = JSON.stringify(ans, null, 2);
+
+        const url = `/api/amortization?principal=${encodeURIComponent(P)}`
+            + `&rate=${encodeURIComponent(R)}`
+            + `&term=${encodeURIComponent(T)}`;
+
+        const resp = await fetch(url);
+        const data = await resp.json();  // List<AmortizationEntry>
+
+        // Populate table
+        tableBody.innerHTML = '';
+        const years = [], balances = [];
+        data.forEach(row => {
+            years.push(row.year);
+            balances.push(row.remainingBalance);
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+          <td>${row.year}</td>
+          <td>$${row.principalPaid.toFixed(2)}</td>
+          <td>$${row.interestPaid.toFixed(2)}</td>
+          <td>$${row.remainingBalance.toFixed(2)}</td>
+        `;
+            tableBody.appendChild(tr);
+        });
+
+        // Render chart (remaining balance over time)
+        if (amortChart) amortChart.destroy();
+        amortChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: years,
+                datasets: [{
+                    label: 'Remaining Balance',
+                    data: balances,
+                    fill: false,
+                    tension: 0.1
+                }]
+            },
+            options: {
+                scales: {
+                    x: { title: { display: true, text: 'Year' } },
+                    y: { title: { display: true, text: 'Balance ($)' } }
+                }
+            }
+        });
     });
+    /*]]>*/
 </script>
 </body>
 </html>

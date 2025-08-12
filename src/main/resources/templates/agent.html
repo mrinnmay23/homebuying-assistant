@@ -1,22 +1,217 @@
+<!--&lt;!&ndash;<!DOCTYPE html>&ndash;&gt;-->
+<!--&lt;!&ndash;<html>&ndash;&gt;-->
+<!--&lt;!&ndash;<head><meta charset="UTF-8"><title>Agent Lookup</title></head>&ndash;&gt;-->
+<!--&lt;!&ndash;<body>&ndash;&gt;-->
+<!--&lt;!&ndash;<h1>Agent Lookup</h1>&ndash;&gt;-->
+<!--&lt;!&ndash;<a th:href="@{/}">&larr; Home</a>&ndash;&gt;-->
+<!--&lt;!&ndash;<form id="form">&ndash;&gt;-->
+<!--&lt;!&ndash;    <label>Agent ID: <input id="id" type="number"/></label>&ndash;&gt;-->
+<!--&lt;!&ndash;    <button>Lookup</button>&ndash;&gt;-->
+<!--&lt;!&ndash;</form>&ndash;&gt;-->
+<!--&lt;!&ndash;<pre id="out"></pre>&ndash;&gt;-->
+<!--&lt;!&ndash;<script>&ndash;&gt;-->
+<!--&lt;!&ndash;    document.getElementById('form').addEventListener('submit', async e=>{&ndash;&gt;-->
+<!--&lt;!&ndash;        e.preventDefault();&ndash;&gt;-->
+<!--&lt;!&ndash;        const id = document.getElementById('id').value;&ndash;&gt;-->
+<!--&lt;!&ndash;        const res = await fetch(`/api/agents/${id}`);&ndash;&gt;-->
+<!--&lt;!&ndash;        const ans = await res.json();&ndash;&gt;-->
+<!--&lt;!&ndash;        document.getElementById('out').textContent = JSON.stringify(ans, null, 2);&ndash;&gt;-->
+<!--&lt;!&ndash;    });&ndash;&gt;-->
+<!--&lt;!&ndash;</script>&ndash;&gt;-->
+<!--&lt;!&ndash;</body>&ndash;&gt;-->
+<!--&lt;!&ndash;</html>&ndash;&gt;-->
+
+<!--<!DOCTYPE html>-->
+<!--<html xmlns:th="http://www.thymeleaf.org" lang="en">-->
+<!--<head>-->
+<!--    <meta charset="UTF-8">-->
+<!--    <title>Agent Lookup</title>-->
+
+<!--    &lt;!&ndash; Bootstrap CSS &ndash;&gt;-->
+<!--    <link-->
+<!--            href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.2/dist/cosmo/bootstrap.min.css"-->
+<!--            rel="stylesheet"-->
+<!--            integrity="sha384-…"-->
+<!--            crossorigin="anonymous"-->
+<!--    />-->
+<!--</head>-->
+<!--<body class="bg-light">-->
+
+<!--<nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-4">-->
+<!--    <div class="container">-->
+<!--        <a class="navbar-brand" th:href="@{/}">Homebuying Assistant</a>-->
+<!--        <div class="navbar-nav">-->
+<!--            <a class="nav-link" th:href="@{/agent}">Agent Lookup</a>-->
+<!--            &lt;!&ndash; add other nav links as needed &ndash;&gt;-->
+<!--        </div>-->
+<!--    </div>-->
+<!--</nav>-->
+
+<!--<div class="container">-->
+<!--    <h1 class="mb-4">Agent Lookup</h1>-->
+
+<!--    <form th:action="@{/agent}" method="get" class="row g-3 mb-4">-->
+<!--        <div class="col-auto">-->
+<!--            <input-->
+<!--                    type="number"-->
+<!--                    name="id"-->
+<!--                    th:value="${agent != null ? agent.id : ''}"-->
+<!--                    class="form-control"-->
+<!--                    placeholder="Agent ID"-->
+<!--                    required-->
+<!--            />-->
+<!--        </div>-->
+<!--        <div class="col-auto">-->
+<!--            <button type="submit" class="btn btn-primary">Lookup</button>-->
+<!--        </div>-->
+<!--    </form>-->
+
+<!--    <div th:if="${agent != null}" class="card">-->
+<!--        <div class="card-header">-->
+<!--            Details for Agent <strong th:text="${agent.id}"></strong>-->
+<!--        </div>-->
+<!--        <div class="card-body">-->
+<!--            <table class="table table-striped mb-0">-->
+<!--                <tr><th scope="row">Name</th>   <td th:text="${agent.name}"></td></tr>-->
+<!--                <tr><th scope="row">Phone</th>  <td th:text="${agent.phone}"></td></tr>-->
+<!--                <tr><th scope="row">Email</th>   <td th:text="${agent.email}"></td></tr>-->
+<!--                &lt;!&ndash; any other fields &ndash;&gt;-->
+<!--            </table>-->
+<!--        </div>-->
+<!--    </div>-->
+
+<!--    <div th:if="${agent == null}" class="alert alert-info">-->
+<!--        Please enter an Agent ID above and click “Lookup.”-->
+<!--    </div>-->
+<!--</div>-->
+
+<!--&lt;!&ndash; Bootstrap JS bundle (includes Popper) &ndash;&gt;-->
+<!--<script-->
+<!--        src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"-->
+<!--        integrity="sha384-…"-->
+<!--        crossorigin="anonymous"-->
+<!--&gt;</script>-->
+<!--</body>-->
+<!--</html>-->
+
 <!DOCTYPE html>
-<html>
-<head><meta charset="UTF-8"><title>Agent Lookup</title></head>
-<body>
-<h1>Agent Lookup</h1>
-<a th:href="@{/}">&larr; Home</a>
-<form id="form">
-    <label>Agent ID: <input id="id" type="number"/></label>
-    <button>Lookup</button>
-</form>
-<pre id="out"></pre>
-<script>
-    document.getElementById('form').addEventListener('submit', async e=>{
-        e.preventDefault();
-        const id = document.getElementById('id').value;
-        const res = await fetch(`/api/agents/${id}`);
-        const ans = await res.json();
-        document.getElementById('out').textContent = JSON.stringify(ans, null, 2);
-    });
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>Agent Lookup</title>
+    <link
+            href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.2/dist/cosmo/bootstrap.min.css"
+            rel="stylesheet"/>
+    <style>
+        body {
+            /* Adjust the path to your file name: */
+            background: url('/images/background.jpg') no-repeat center center fixed;
+            background-size: cover;
+        }
+    </style>
+</head>
+<body class="bg-light">
+
+<!--<nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-4">-->
+<nav class="navbar navbar-expand-lg bg-transparent mb-4">
+    <div class="container">
+        <a class="navbar-brand" th:href="@{/}">Homebuying Assistant</a>
+        <div class="navbar-nav">
+            <a class="nav-link" th:href="@{/}">Home</a>
+            <a class="nav-link active" th:href="@{/agent}">Agent Lookup</a>
+        </div>
+    </div>
+</nav>
+
+<div class="container">
+
+    <a th:href="@{/}" class="btn btn-outline-secondary mb-3">
+        ← Home
+    </a>
+    <h1 class="mb-4">Agent Lookup</h1>
+
+    <div class="row mb-4">
+        <!-- lookup by ID -->
+        <form th:action="@{/agent}" method="get" class="col-auto row gx-2">
+            <div class="col">
+                <input type="number" name="id"
+                       class="form-control"
+                       placeholder="Agent ID"
+                       th:value="${agent != null} ? ${agent.id} : ''"/>
+            </div>
+            <div class="col">
+                <button type="submit" class="btn btn-primary">By ID</button>
+            </div>
+        </form>
+
+        <!-- lookup by Name -->
+        <form th:action="@{/agent}" method="get" class="col-auto row gx-2">
+            <div class="col">
+                <input type="text" name="name"
+                       class="form-control"
+                       placeholder="Agent Name"
+                       th:value="${nameQuery}"/>
+            </div>
+            <div class="col">
+                <button type="submit" class="btn btn-secondary">By Name</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="p-4 mb-4 bg-white bg-opacity-75 rounded shadow-sm">
+    <!-- All agents list -->
+    <table class="table table-hover mb-4">
+        <thead>
+        <tr>
+            <th>ID</th><th>Name</th><th>Email</th><th>Phone</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="a : ${agents}">
+            <td th:text="${a.id}">1</td>
+            <td>
+                <a th:href="@{/agent(id=${a.id})}"
+                   th:text="${a.name}">Alice Smith</a>
+            </td>
+            <td th:text="${a.email}">alice@…</td>
+            <td th:text="${a.phone}">555-1234</td>
+        </tr>
+        </tbody>
+    </table>
+
+    <!-- Selected agent detail -->
+    <div th:if="${agent != null}" class="card mb-4">
+        <div class="card-header">
+            Details for <strong th:text="${agent.name}">Agent Name</strong>
+        </div>
+        <div class="card-body row">
+            <div class="col-md-4">
+                <img th:src="@{/images/{fn}(fn=${agent.imageFilename})}"
+                     th:alt="${agent.name}"
+                     class="img-fluid img-thumbnail"/>
+            </div>
+            <div class="col-md-8">
+                <table class="table mb-0">
+                    <tr><th>ID</th>    <td th:text="${agent.id}"/></tr>
+                    <tr><th>Email</th> <td th:text="${agent.email}"/></tr>
+                    <tr><th>Phone</th> <td th:text="${agent.phone}"/></tr>
+                    <tr><th>Image</th> <td th:text="${agent.imageFilename}"/></tr>
+                </table>
+            </div>
+        </div>
+    </div>
+    </div>
+
+    <!-- no one selected yet -->
+    <div th:if="${agent == null}" class="alert alert-info">
+        Please pick an agent above or click a name in the table.
+    </div>
+
+</div>
+
+<script
+        src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js">
 </script>
 </body>
 </html>
+

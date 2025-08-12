@@ -26,4 +26,7 @@ public class QuoteService {
         // 3. Return top 3 (or fewer)
         return matches.stream().limit(3).toList();
     }
+    public List<Quote> getAllQuotes() {
+        return repo.findAll();
+    }
 }

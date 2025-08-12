@@ -13,6 +13,7 @@ public class Agent {
     private String name;
     private String email;
     private String phone;
+    public String imageFilename;
 
     public Agent() {
 
@@ -49,6 +50,14 @@ public class Agent {
 
     public void setPhone(String phone) {
         this.phone = phone;
+    }
+
+    public String getImageFilename() {
+        return imageFilename;
+    }
+
+    public void setImageFilename(String imageFilename) {
+        this.imageFilename = imageFilename;
     }
 
     public Agent(Long id, String name, String email, String phone) {

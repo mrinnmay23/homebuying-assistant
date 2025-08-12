@@ -8,4 +8,6 @@ INSERT INTO quotes (min_score, max_score, rate, fees, agent_id) VALUES
 
 INSERT INTO agent (name,email,phone) VALUES
                                          ('Alice Smith','alice@loanco.com','555-1234'),
-                                         ('Bob Jones','bob@homeloans.com','555-5678');
+                                         ('Bob Jones','bob@homeloans.com','555-5678'),
+                                         ('Ann Tunes','alice@loanco.com','555-1234'),
+                                         ('Tobby Right','bob@homeloans.com','555-5678');

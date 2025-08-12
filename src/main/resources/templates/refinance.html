@@ -1,28 +1,176 @@
+<!--<!DOCTYPE html>-->
+<!--<html>-->
+<!--<head><meta charset="UTF-8"><title>Refinance Check</title></head>-->
+<!--<body>-->
+<!--<h1>Refinance Check</h1>-->
+<!--<a th:href="@{/}">&larr; Home</a>-->
+<!--<form id="form">-->
+<!--    <label>Principal:    <input id="P" type="number" step="0.01"/></label><br/>-->
+<!--    <label>Current Rate: <input id="CR" type="number" step="0.01"/></label><br/>-->
+<!--    <label>New Rate:     <input id="NR" type="number" step="0.01"/></label><br/>-->
+<!--    <label>Term (yr):    <input id="T" type="number"/></label><br/>-->
+<!--    <button>Estimate</button>-->
+<!--</form>-->
+<!--<pre id="out"></pre>-->
+<!--<script>-->
+<!--    document.getElementById('form').addEventListener('submit', async e=>{-->
+<!--        e.preventDefault();-->
+<!--        const P  = document.getElementById('P').value,-->
+<!--            CR = document.getElementById('CR').value,-->
+<!--            NR = document.getElementById('NR').value,-->
+<!--            T  = document.getElementById('T').value;-->
+<!--        const res = await fetch(`/api/refinance?principal=${P}&currentRate=${CR}&newRate=${NR}&term=${T}`);-->
+<!--        const ans = await res.json();-->
+<!--        document.getElementById('out').textContent = JSON.stringify(ans, null, 2);-->
+<!--    });-->
+<!--</script>-->
+<!--</body>-->
+<!--</html>-->
+
+
 <!DOCTYPE html>
-<html>
-<head><meta charset="UTF-8"><title>Refinance Check</title></head>
-<body>
-<h1>Refinance Check</h1>
-<a th:href="@{/}">&larr; Home</a>
-<form id="form">
-    <label>Principal:    <input id="P" type="number" step="0.01"/></label><br/>
-    <label>Current Rate: <input id="CR" type="number" step="0.01"/></label><br/>
-    <label>New Rate:     <input id="NR" type="number" step="0.01"/></label><br/>
-    <label>Term (yr):    <input id="T" type="number"/></label><br/>
-    <button>Estimate</button>
-</form>
-<pre id="out"></pre>
-<script>
-    document.getElementById('form').addEventListener('submit', async e=>{
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Refinance Check</title>
+
+    <!-- Bootswatch Cosmo theme -->
+    <link
+            href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.2/dist/cosmo/bootstrap.min.css"
+            rel="stylesheet"
+    />
+
+    <style>
+        body {
+            background: url('/images/background.jpg') no-repeat center center fixed;
+            background-size: cover;
+        }
+        .card-transparent {
+            background: rgba(255,255,255,0.85);
+            border-radius: .5rem;
+            padding: 2rem;
+            max-width: 700px;
+            margin: 2rem auto;
+        }
+    </style>
+</head>
+<body class="bg-light">
+
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-4">
+    <div class="container">
+        <a class="navbar-brand" th:href="@{/}">Homebuying Assistant</a>
+        <div class="navbar-nav">
+            <a class="nav-link" th:href="@{/chat}">Chat</a>
+            <a class="nav-link" th:href="@{/quotes}">Quotes</a>
+            <a class="nav-link" th:href="@{/calculator}">Calculator</a>
+            <a class="nav-link" th:href="@{/score}">Offer Score</a>
+            <a class="nav-link active" th:href="@{/refinance}">Refinance</a>
+        </div>
+    </div>
+</nav>
+
+<div class="container">
+    <a th:href="@{/}" class="btn btn-outline-secondary mb-3">← Home</a>
+
+    <div class="card-transparent">
+        <h2 class="mb-4">Refinance Estimator</h2>
+
+        <form id="refi-form" class="row g-3 mb-4">
+            <div class="col-md-6">
+                <input
+                        id="P"
+                        type="number"
+                        step="0.01"
+                        class="form-control"
+                        placeholder="Principal"
+                        required
+                />
+            </div>
+            <div class="col-md-6">
+                <input
+                        id="CR"
+                        type="number"
+                        step="0.01"
+                        class="form-control"
+                        placeholder="Current Rate (%)"
+                        required
+                />
+            </div>
+            <div class="col-md-6">
+                <input
+                        id="NR"
+                        type="number"
+                        step="0.01"
+                        class="form-control"
+                        placeholder="New Rate (%)"
+                        required
+                />
+            </div>
+            <div class="col-md-6">
+                <input
+                        id="T"
+                        type="number"
+                        class="form-control"
+                        placeholder="Term (years)"
+                        required
+                />
+            </div>
+            <div class="col-12 text-center">
+                <button type="submit" class="btn btn-primary">Estimate Refinance</button>
+            </div>
+        </form>
+
+        <div id="refi-result" class="alert alert-info" style="display:none;"></div>
+    </div>
+</div>
+
+<script
+        src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
+></script>
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    const form   = document.getElementById('refi-form'),
+        result = document.getElementById('refi-result');
+
+    form.addEventListener('submit', async e => {
         e.preventDefault();
+
         const P  = document.getElementById('P').value,
             CR = document.getElementById('CR').value,
             NR = document.getElementById('NR').value,
             T  = document.getElementById('T').value;
-        const res = await fetch(`/api/refinance?principal=${P}&currentRate=${CR}&newRate=${NR}&term=${T}`);
-        const ans = await res.json();
-        document.getElementById('out').textContent = JSON.stringify(ans, null, 2);
+
+        const url = `/api/refinance?principal=${encodeURIComponent(P)}`
+            + `&currentRate=${encodeURIComponent(CR)}`
+            + `&newRate=${encodeURIComponent(NR)}`
+            + `&term=${encodeURIComponent(T)}`;
+
+        try {
+            const resp = await fetch(url);
+            const data = await resp.json();
+
+            result.style.display = 'block';
+            result.className = data.shouldRefinance
+                ? 'alert alert-success'
+                : 'alert alert-warning';
+
+            result.innerHTML = `
+          <strong>Old Payment:</strong> $${data.oldPayment.toFixed(2)}<br/>
+          <strong>New Payment:</strong> $${data.newPayment.toFixed(2)}<br/>
+          <strong>Monthly Savings:</strong> $${data.monthlySavings.toFixed(2)}<br/>
+          <em>${data.shouldRefinance
+                ? 'This looks like a good time to refinance!'
+                : 'You may want to hold off on refinancing right now.'}
+          </em>
+        `;
+        } catch (err) {
+            result.style.display = 'block';
+            result.className = 'alert alert-danger';
+            result.textContent = 'Error estimating refinance.';
+        }
     });
+    /*]]>*/
 </script>
 </body>
 </html>

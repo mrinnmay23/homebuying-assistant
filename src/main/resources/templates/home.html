@@ -1,20 +1,273 @@
+<!--<!DOCTYPE html>-->
+<!--<html xmlns:th="http://www.thymeleaf.org">-->
+<!--<head>-->
+<!--    <meta charset="UTF-8">-->
+<!--    <title>Homebuying Assistant</title>-->
+<!--</head>-->
+<!--<body>-->
+<!--<h1>Welcome to Homebuying Assistant</h1>-->
+<!--<ul>-->
+<!--    <li><a th:href="@{/chat}">Chatbot</a></li>-->
+<!--    <li><a th:href="@{/quotes}">Compare Quotes</a></li>-->
+<!--    <li><a th:href="@{/calculator}">Loan Calculator</a></li>-->
+<!--    <li><a th:href="@{/score}">Offer Score</a></li>-->
+<!--    <li><a th:href="@{/amortization}">Amortization Schedule</a></li>-->
+<!--    <li><a th:href="@{/refinance}">Refinance Check</a></li>-->
+<!--    <li><a th:href="@{/upload-pdf}">Upload PDF</a></li>-->
+<!--    <li><a th:href="@{/agent}">Agent Lookup</a></li>-->
+<!--</ul>-->
+<!--</body>-->
+<!--</html>-->
+
+
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
 <head>
     <meta charset="UTF-8">
     <title>Homebuying Assistant</title>
+
+    <!-- Bootswatch Cosmo theme -->
+    <link href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.2/dist/cosmo/bootstrap.min.css" rel="stylesheet"/>
+
+    <style>
+        body{
+            background: linear-gradient(rgba(0,0,0,.35), rgba(0,0,0,.35)),
+            url('/images/background.jpg') no-repeat center center fixed;
+            background-size: cover;
+        }
+        .hero {
+            background: rgba(255,255,255,0.88);
+            border-radius: .75rem;
+            padding: 2rem 2rem 1.5rem;
+            margin-top: 1rem;
+        }
+        .card-glass {
+            background: rgba(255,255,255,0.88);
+            border-radius: .75rem;
+            box-shadow: 0 6px 24px rgba(0,0,0,.08);
+        }
+        .feature-card .card-title { margin-bottom:.4rem; }
+        .small-muted { font-size:.95rem; color:#555; }
+        .pill { font-size:.75rem; }
+    </style>
 </head>
-<body>
-<h1>Welcome to Homebuying Assistant</h1>
-<ul>
-    <li><a th:href="@{/chat}">Chatbot</a></li>
-    <li><a th:href="@{/quotes}">Compare Quotes</a></li>
-    <li><a th:href="@{/calculator}">Loan Calculator</a></li>
-    <li><a th:href="@{/score}">Offer Score</a></li>
-    <li><a th:href="@{/amortization}">Amortization Schedule</a></li>
-    <li><a th:href="@{/refinance}">Refinance Check</a></li>
-    <li><a th:href="@{/upload-pdf}">Upload PDF</a></li>
-    <li><a th:href="@{/agent}">Agent Lookup</a></li>
-</ul>
+<body class="bg-light">
+
+<!-- Navbar -->
+<!--<nav class="navbar navbar-expand-lg navbar-dark bg-primary">-->
+<nav class="navbar navbar-expand-lg navbar-dark bg-transparent mb-4">
+    <div class="container">
+        <a class="navbar-brand" th:href="@{/}">Homebuying Assistant</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div id="nav" class="collapse navbar-collapse">
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" th:href="@{/chat}">Chat</a>
+                <a class="nav-link" th:href="@{/quotes}">Quotes</a>
+                <a class="nav-link" th:href="@{/calculator}">Calculator</a>
+                <a class="nav-link" th:href="@{/score}">Offer Score</a>
+                <a class="nav-link" th:href="@{/amortization}">Amortization</a>
+                <a class="nav-link" th:href="@{/refinance}">Refinance</a>
+                <a class="nav-link" th:href="@{/upload-pdf}">PDF Upload</a>
+                <a class="nav-link" th:href="@{/agent}">Agent Lookup</a>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<div class="container">
+
+    <!-- Hero -->
+    <div class="hero mt-4">
+
+        <h1 class="mt-2">Make smarter mortgage decisions, without the jargon.</h1>
+        <p class="lead mb-3">
+            This site compares mortgage quotes, explains the numbers in plain English,
+            and gives you simple tools—powered by a chatbot and PDF extraction—to plan with confidence.
+        </p>
+        <div class="d-flex gap-2 flex-wrap">
+            <a class="btn btn-primary" th:href="@{/chat}">Ask the Chatbot</a>
+            <a class="btn btn-outline-primary" th:href="@{/quotes}">See Quotes by Credit Score</a>
+        </div>
+    </div>
+
+    <!-- What it does -->
+    <div class="row g-4 mt-2">
+        <div class="col-md-4">
+            <div class="card card-glass h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Compare Offers</h5>
+                    <p class="card-text small-muted">
+                        Enter a credit score to view example mortgage offers. Click any quote to view the agent profile.
+                    </p>
+                    <a th:href="@{/quotes}" class="btn btn-sm btn-outline-primary">Try Quotes</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card card-glass h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Understand the Numbers</h5>
+                    <p class="card-text small-muted">
+                        Use the calculator and amortization schedule to see monthly payments and how much goes to principal vs interest.
+                    </p>
+                    <a th:href="@{/calculator}" class="btn btn-sm btn-outline-primary me-2">Calculator</a>
+                    <a th:href="@{/amortization}" class="btn btn-sm btn-outline-primary">Amortization</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card card-glass h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Upload & Extract</h5>
+                    <p class="card-text small-muted">
+                        Upload a Loan Estimate PDF and we’ll pull key fields (rate, fees, amount) using Document AI.
+                    </p>
+                    <a th:href="@{/upload-pdf}" class="btn btn-sm btn-outline-primary">Upload PDF</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Features grid -->
+    <h3 class="mt-5">Features at a glance</h3>
+    <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-4">
+        <div class="col">
+            <div class="card feature-card card-glass h-100">
+                <div class="card-body">
+                    <h5 class="card-title">🤖 Chatbot</h5>
+                    <p class="small-muted">Ask questions in plain language (“How much down payment do I need?”). The bot guides you to the right tool or answer.</p>
+                    <a th:href="@{/chat}" class="btn btn-outline-secondary btn-sm">Open Chat</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col">
+            <div class="card feature-card card-glass h-100">
+                <div class="card-body">
+                    <h5 class="card-title">📊 Compare Quotes</h5>
+                    <p class="small-muted">Enter a credit score to view example rates/fees from the demo dataset. Click through to see the agent profile.</p>
+                    <a th:href="@{/quotes}" class="btn btn-outline-secondary btn-sm">View Quotes</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col">
+            <div class="card feature-card card-glass h-100">
+                <div class="card-body">
+                    <h5 class="card-title">🧮 Loan Calculator</h5>
+                    <p class="small-muted">See your monthly payment for any loan amount, interest rate, and term. Great for quick “what-if” checks.</p>
+                    <a th:href="@{/calculator}" class="btn btn-outline-secondary btn-sm">Open Calculator</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col">
+            <div class="card feature-card card-glass h-100">
+                <div class="card-body">
+                    <h5 class="card-title">📈 Offer Score</h5>
+                    <p class="small-muted">Enter your rate and fees to see a simple percentile vs. a large set of historical loans.</p>
+                    <a th:href="@{/score}" class="btn btn-outline-secondary btn-sm">Check Score</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col">
+            <div class="card feature-card card-glass h-100">
+                <div class="card-body">
+                    <h5 class="card-title">📉 Amortization</h5>
+                    <p class="small-muted">Year-by-year chart of what you pay in interest vs. principal, and how your balance drops over time.</p>
+                    <a th:href="@{/amortization}" class="btn btn-outline-secondary btn-sm">See Schedule</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col">
+            <div class="card feature-card card-glass h-100">
+                <div class="card-body">
+                    <h5 class="card-title">🔁 Refinance Check</h5>
+                    <p class="small-muted">Compare your current payment vs a new rate and see potential monthly savings.</p>
+                    <a th:href="@{/refinance}" class="btn btn-outline-secondary btn-sm">Run Check</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col">
+            <div class="card feature-card card-glass h-100">
+                <div class="card-body">
+                    <h5 class="card-title">📄 PDF Upload</h5>
+                    <p class="small-muted">Upload your Loan Estimate (PDF). We’ll extract key fields using Google Document AI.</p>
+                    <a th:href="@{/upload-pdf}" class="btn btn-outline-secondary btn-sm">Upload PDF</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col">
+            <div class="card feature-card card-glass h-100">
+                <div class="card-body">
+                    <h5 class="card-title">🧑‍💼 Agent Lookup</h5>
+                    <p class="small-muted">Browse demo agents or open a profile from a quote to see contact details.</p>
+                    <a th:href="@{/agent}" class="btn btn-outline-secondary btn-sm">Find Agent</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Plain-English explanations -->
+    <h3 class="mt-5">Key terms in simple</h3>
+    <div class="row g-4">
+        <div class="col-md-6">
+            <div class="card card-glass">
+                <div class="card-body">
+                    <h5 class="card-title">What is a mortgage?</h5>
+                    <p class="small-muted">A long-term loan used to buy a home. You pay it back monthly, with interest.</p>
+
+                    <h6>Down payment</h6>
+                    <p class="small-muted mb-2">The cash you pay up front (e.g., 10% of price). A higher down payment can lower your monthly payment.</p>
+
+                    <h6>Interest rate</h6>
+                    <p class="small-muted mb-2">The cost of borrowing, shown as a yearly %. Even small changes matter a lot over 30 years.</p>
+
+                    <h6>Fees (a.k.a. closing costs)</h6>
+                    <p class="small-muted mb-0">Extra costs charged by lenders or services (processing, origination, points). Our tools let you compare rate AND fees.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card card-glass">
+                <div class="card-body">
+                    <h5 class="card-title">What do the tools show?</h5>
+
+                    <h6>Amortization</h6>
+                    <p class="small-muted mb-2">A breakdown of each year’s payments—how much goes to interest vs. paying down your loan.</p>
+
+                    <h6>Refinance</h6>
+                    <p class="small-muted mb-2">Replacing your loan with a new one at a lower rate. We estimate new payment & savings.</p>
+
+                    <h6>Offer Score</h6>
+                    <p class="small-muted mb-0">A simple percentile vs historical loans to help you sense if your rate/fees are competitive.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- How to use -->
+    <div class="card card-glass mt-4">
+        <div class="card-body">
+            <h5 class="card-title">How to use this site</h5>
+            <ol class="small-muted mb-0">
+                <li>Start with the <a th:href="@{/chat}">Chatbot</a>—ask anything in plain language.</li>
+                <li>Check <a th:href="@{/quotes}">Quotes</a> with your credit score to see example offers.</li>
+                <li>Use the <a th:href="@{/calculator}">Calculator</a> & <a th:href="@{/amortization}">Amortization</a> to understand payments over time.</li>
+                <li>Have a Loan Estimate PDF? <a th:href="@{/upload-pdf}">Upload it</a> and we’ll extract the key fields for you.</li>
+                <li>Compare your deal with <a th:href="@{/score}">Offer Score</a> and explore savings in <a th:href="@{/refinance}">Refinance</a>.</li>
+            </ol>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

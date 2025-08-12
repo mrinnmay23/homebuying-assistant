@@ -16,10 +16,10 @@ public class PageController {
         return "chat";       // chat.html
     }
 
-    @GetMapping("/quotes")
-    public String quotes() {
-        return "quotes";     // quotes.html
-    }
+//    @GetMapping("/quotes")
+//    public String quotes() {
+//        return "quotes";     // quotes.html
+//    }
 
     @GetMapping("/calculator")
     public String calculator() {
@@ -46,8 +46,8 @@ public class PageController {
         return "upload";     // upload.html
     }
 
-    @GetMapping("/agent")
-    public String agentLookup() {
-        return "agent";      // agent.html
-    }
+//    @GetMapping("/agent")
+//    public String agentLookup() {
+//        return "agent";      // agent.html
+//    }
 }
