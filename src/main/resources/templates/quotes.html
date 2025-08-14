@@ -82,21 +82,45 @@
         </form>
     </div>
 
+<!--    <div class="translucent mb-4">-->
+<!--        <h5>All Stored Quotes</h5>-->
+<!--        <table class="table table-hover mb-0">-->
+<!--            <thead>-->
+<!--            <tr>-->
+<!--                <th>ID</th><th>Agent ID</th><th>Score Range</th><th>Rate</th><th>Fees</th>-->
+<!--            </tr>-->
+<!--            </thead>-->
+<!--            <tbody>-->
+<!--            <tr th:each="q : ${quotes}">-->
+<!--                <td th:text="${q.id}">1</td>-->
+<!--                <td th:text="${q.agentId}">1</td>-->
+<!--                <td>-->
+<!--                    <span th:text="${q.minScore}">300</span>–-->
+<!--                    <span th:text="${q.maxScore}">350</span>-->
+<!--                </td>-->
+<!--                <td th:text="${q.rate}">7.5</td>-->
+<!--                <td th:text="${q.fees}">500</td>-->
+<!--            </tr>-->
+<!--            </tbody>-->
+<!--        </table>-->
+<!--    </div>-->
+
     <div class="translucent mb-4">
         <h5>All Stored Quotes</h5>
         <table class="table table-hover mb-0">
             <thead>
             <tr>
-                <th>ID</th><th>Agent ID</th><th>Score Range</th><th>Rate</th><th>Fees</th>
+                <th>ID</th>
+                <th>Score Range</th>
+                <th>Rate</th>
+                <th>Fees</th>
             </tr>
             </thead>
             <tbody>
             <tr th:each="q : ${quotes}">
                 <td th:text="${q.id}">1</td>
-                <td th:text="${q.agentId}">1</td>
                 <td>
-                    <span th:text="${q.minScore}">300</span>–
-                    <span th:text="${q.maxScore}">350</span>
+                    <span th:text="${q.minScore}">300</span>–<span th:text="${q.maxScore}">350</span>
                 </td>
                 <td th:text="${q.rate}">7.5</td>
                 <td th:text="${q.fees}">500</td>
@@ -105,21 +129,45 @@
         </table>
     </div>
 
+<!--    <div th:if="${filtered != null}" class="translucent mb-4">-->
+<!--        <h5 th:text="'Quotes matching score ' + ${scoreQuery}">Filtered</h5>-->
+<!--        <table class="table table-striped mb-0">-->
+<!--            <thead>-->
+<!--            <tr>-->
+<!--                <th>ID</th><th>Agent ID</th><th>Score Range</th><th>Rate</th><th>Fees</th>-->
+<!--            </tr>-->
+<!--            </thead>-->
+<!--            <tbody>-->
+<!--            <tr th:each="q : ${filtered}">-->
+<!--                <td th:text="${q.id}"></td>-->
+<!--                <td th:text="${q.agentId}"></td>-->
+<!--                <td>-->
+<!--                    <span th:text="${q.minScore}"></span>–-->
+<!--                    <span th:text="${q.maxScore}"></span>-->
+<!--                </td>-->
+<!--                <td th:text="${q.rate}"></td>-->
+<!--                <td th:text="${q.fees}"></td>-->
+<!--            </tr>-->
+<!--            </tbody>-->
+<!--        </table>-->
+<!--    </div>-->
+
     <div th:if="${filtered != null}" class="translucent mb-4">
         <h5 th:text="'Quotes matching score ' + ${scoreQuery}">Filtered</h5>
         <table class="table table-striped mb-0">
             <thead>
             <tr>
-                <th>ID</th><th>Agent ID</th><th>Score Range</th><th>Rate</th><th>Fees</th>
+                <th>ID</th>
+                <th>Score Range</th>
+                <th>Rate</th>
+                <th>Fees</th>
             </tr>
             </thead>
             <tbody>
             <tr th:each="q : ${filtered}">
                 <td th:text="${q.id}"></td>
-                <td th:text="${q.agentId}"></td>
                 <td>
-                    <span th:text="${q.minScore}"></span>–
-                    <span th:text="${q.maxScore}"></span>
+                    <span th:text="${q.minScore}"></span>–<span th:text="${q.maxScore}"></span>
                 </td>
                 <td th:text="${q.rate}"></td>
                 <td th:text="${q.fees}"></td>
@@ -127,6 +175,7 @@
             </tbody>
         </table>
     </div>
+
 
 </div>
 

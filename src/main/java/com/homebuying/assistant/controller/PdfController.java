@@ -38,4 +38,44 @@ public class PdfController {
             return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
         }
     }
+
+    // PdfController.java
+    @PostMapping(value = "/upload-to-chat", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> uploadToChat(@RequestParam("file") MultipartFile file,
+                                          jakarta.servlet.http.HttpSession session) {
+        try {
+            Map<String,String> fields = pdfSvc.parseLoanEstimate(file);
+
+            // get or create ctx
+            var ctx = (com.homebuying.assistant.chat.LoanContext) session.getAttribute("ctx");
+            if (ctx == null) ctx = new com.homebuying.assistant.chat.LoanContext();
+
+            // let your context do the tolerant parsing
+            ctx.applyPdfFields(fields);
+
+            // save back
+            session.setAttribute("ctx", ctx);
+
+            // build a null-safe response (LinkedHashMap tolerates nulls)
+            var normalized = new java.util.LinkedHashMap<String,Object>();
+            normalized.put("principal",  ctx.principal);
+            normalized.put("rate",       ctx.rate);
+            normalized.put("termYears",  ctx.termYears);
+            normalized.put("fees", ctx.fees);
+
+
+            var resp = new java.util.LinkedHashMap<String,Object>();
+            resp.put("reply", "I read your PDF and saved key values. You can now ask me to calculate payments, amortization, offer score, or refinance.");
+            resp.put("normalized", normalized);
+
+            return ResponseEntity.ok(resp);
+
+        } catch (Exception e) {
+            var err = new java.util.LinkedHashMap<String,Object>();
+            err.put("error", e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName());
+            return ResponseEntity.status(500).body(err);
+        }
+    }
+
+
 }

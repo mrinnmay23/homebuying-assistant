@@ -1,5 +1,6 @@
 package com.homebuying.assistant.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 @Entity
@@ -13,6 +14,7 @@ public class Quote {
     private int maxScore;
     private double rate;
     private double fees;
+    @JsonIgnore
     private Long agentId;
 
     public Long getId() {
@@ -80,7 +82,6 @@ public class Quote {
                 ", maxScore=" + maxScore +
                 ", rate=" + rate +
                 ", fees=" + fees +
-                ", agentId=" + agentId +
                 '}';
     }
 
