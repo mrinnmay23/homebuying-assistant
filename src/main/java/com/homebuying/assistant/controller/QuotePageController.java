@@ -23,11 +23,11 @@ public class QuotePageController {
             @RequestParam(name="score", required=false) Integer score,
             Model model
     ) {
-        // always show full list
+
         List<Quote> all = quoteService.getAllQuotes();
         model.addAttribute("quotes", all);
 
-        // if user typed a score, show filtered subset
+
         if (score != null) {
             List<Quote> filtered = quoteService.getTopQuotes(score);
             model.addAttribute("filtered", filtered);

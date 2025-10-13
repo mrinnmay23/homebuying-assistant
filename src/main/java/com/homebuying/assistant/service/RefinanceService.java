@@ -16,15 +16,15 @@ public class RefinanceService {
                                  double currentRate,
                                  double newRate,
                                  int termYears) {
-        // 1) Calculate old vs. new monthly payment
+
         double oldPay = calcService.calculateMonthlyPayment(principal, currentRate, termYears);
         double newPay = calcService.calculateMonthlyPayment(principal, newRate, termYears);
 
-        // 2) Compute savings
+
         double savings = Math.round((oldPay - newPay) * 100.0) / 100.0;
         boolean should = savings > 0;
 
-        // 3) Return DTO
+
         return new RefinanceDto(oldPay, newPay, savings, should);
     }
 }

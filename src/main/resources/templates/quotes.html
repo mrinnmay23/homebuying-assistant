@@ -1,30 +1,3 @@
-<!--<!DOCTYPE html>-->
-<!--<html>-->
-<!--<head><meta charset="UTF-8"><title>Get Quotes</title></head>-->
-<!--<body>-->
-<!--<h1>Mortgage Quotes</h1>-->
-<!--<a th:href="@{/}">&larr; Home</a>-->
-<!--<form id="form">-->
-<!--    <label>Credit Score: <input id="score" type="number" min="300" max="850"/></label>-->
-<!--    <button>Get Quotes</button>-->
-<!--</form>-->
-<!--<pre id="out"></pre>-->
-
-<!--<script>-->
-<!--    document.getElementById('form').addEventListener('submit', async e=>{-->
-<!--        e.preventDefault();-->
-<!--        const s = document.getElementById('score').value;-->
-<!--        const res = await fetch('/api/quotes?score='+encodeURIComponent(s));-->
-<!--        const jokes = await res.json();-->
-<!--        document.getElementById('out').textContent = JSON.stringify(jokes, null, 2);-->
-<!--    });-->
-<!--</script>-->
-<!--</body>-->
-<!--</html>-->
-
-<!-- src/main/resources/templates/quotes.html -->
-
-
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="en">
 <head>
@@ -82,28 +55,7 @@
         </form>
     </div>
 
-<!--    <div class="translucent mb-4">-->
-<!--        <h5>All Stored Quotes</h5>-->
-<!--        <table class="table table-hover mb-0">-->
-<!--            <thead>-->
-<!--            <tr>-->
-<!--                <th>ID</th><th>Agent ID</th><th>Score Range</th><th>Rate</th><th>Fees</th>-->
-<!--            </tr>-->
-<!--            </thead>-->
-<!--            <tbody>-->
-<!--            <tr th:each="q : ${quotes}">-->
-<!--                <td th:text="${q.id}">1</td>-->
-<!--                <td th:text="${q.agentId}">1</td>-->
-<!--                <td>-->
-<!--                    <span th:text="${q.minScore}">300</span>–-->
-<!--                    <span th:text="${q.maxScore}">350</span>-->
-<!--                </td>-->
-<!--                <td th:text="${q.rate}">7.5</td>-->
-<!--                <td th:text="${q.fees}">500</td>-->
-<!--            </tr>-->
-<!--            </tbody>-->
-<!--        </table>-->
-<!--    </div>-->
+
 
     <div class="translucent mb-4">
         <h5>All Stored Quotes</h5>
@@ -129,28 +81,7 @@
         </table>
     </div>
 
-<!--    <div th:if="${filtered != null}" class="translucent mb-4">-->
-<!--        <h5 th:text="'Quotes matching score ' + ${scoreQuery}">Filtered</h5>-->
-<!--        <table class="table table-striped mb-0">-->
-<!--            <thead>-->
-<!--            <tr>-->
-<!--                <th>ID</th><th>Agent ID</th><th>Score Range</th><th>Rate</th><th>Fees</th>-->
-<!--            </tr>-->
-<!--            </thead>-->
-<!--            <tbody>-->
-<!--            <tr th:each="q : ${filtered}">-->
-<!--                <td th:text="${q.id}"></td>-->
-<!--                <td th:text="${q.agentId}"></td>-->
-<!--                <td>-->
-<!--                    <span th:text="${q.minScore}"></span>–-->
-<!--                    <span th:text="${q.maxScore}"></span>-->
-<!--                </td>-->
-<!--                <td th:text="${q.rate}"></td>-->
-<!--                <td th:text="${q.fees}"></td>-->
-<!--            </tr>-->
-<!--            </tbody>-->
-<!--        </table>-->
-<!--    </div>-->
+
 
     <div th:if="${filtered != null}" class="translucent mb-4">
         <h5 th:text="'Quotes matching score ' + ${scoreQuery}">Filtered</h5>

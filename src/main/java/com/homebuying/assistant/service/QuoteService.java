@@ -16,14 +16,12 @@ public class QuoteService {
     }
 
     public List<Quote> getTopQuotes(int creditScore) {
-        // 1. Fetch all quotes matching the score range
+
         List<Quote> matches = repo.findByMinScoreLessThanEqualAndMaxScoreGreaterThanEqual(
                 creditScore, creditScore);
 
-        // 2. Sort by rate+fees ascending
         matches.sort(Comparator.comparingDouble(q -> q.getRate() + q.getFees()));
 
-        // 3. Return top 3 (or fewer)
         return matches.stream().limit(3).toList();
     }
     public List<Quote> getAllQuotes() {

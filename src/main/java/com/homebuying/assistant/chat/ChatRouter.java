@@ -36,11 +36,11 @@ public class ChatRouter {
         }
     }
 
-    /** Build a concise prompt listing each intent with 2 examples, then the user text. */
+
     private String buildClassificationPrompt(String userText) {
         StringBuilder sb = new StringBuilder();
         sb.append("Classify the user request into one of the following intents:\n");
-        // For each intent, take first two sample utterances:
+
         for (Map.Entry<Intent,List<String>> entry : intentRepo.findAll().entrySet()) {
             Intent intent = entry.getKey();
             List<String> samples = entry.getValue();
@@ -90,15 +90,6 @@ public class ChatRouter {
 
     public Map<String,String> extractSlots(String userText, Intent intent) {
         switch (intent) {
-//            case GET_QUOTES: {
-//                // e.g. "720 credit score"
-//                Matcher m = Pattern.compile("(\\d{3})\\s*credit score", Pattern.CASE_INSENSITIVE)
-//                        .matcher(userText);
-//                if (m.find()) {
-//                    return Map.of("creditScore", m.group(1));
-//                }
-//                break;
-//            }
 
             case GET_QUOTES: {
                 // match “score 700”, “credit score 700”, or a bare 3-digit number
@@ -161,22 +152,7 @@ public class ChatRouter {
                 break;
             }
 
-//            case REFINANCE_CHECK: {
-//                // e.g. "refinance if rates drop from 4.0% to 3.5% on $250k over 20 years"
-//                Matcher m = Pattern.compile(
-//                        "from\\s*([\\d.]+)%\\s*to\\s*([\\d.]+)%.*\\$?(\\d+(?:\\.\\d+)?).*?(\\d+)\\s*years",
-//                        Pattern.CASE_INSENSITIVE
-//                ).matcher(userText);
-//                if (m.find()) {
-//                    return Map.of(
-//                            "currentRate", m.group(1),
-//                            "newRate",     m.group(2),
-//                            "principal",   m.group(3),
-//                            "termYears",   m.group(4)
-//                    );
-//                }
-//                break;
-//            }
+
 
             case REFINANCE_CHECK: {
                 // Pattern A: "from 4.0% to 3.5% on $250k over 20 years"
@@ -205,38 +181,6 @@ public class ChatRouter {
             }
 
 
-//            case AGENT_LOOKUP: {
-//                // e.g. "connect me to an agent in Seattle" or "agent id 42"
-//                Matcher byCity = Pattern.compile("agent.*in\\s+([A-Za-z ]+)", Pattern.CASE_INSENSITIVE)
-//                        .matcher(userText);
-//                if (byCity.find()) {
-//                    return Map.of("city", byCity.group(1).trim());
-//                }
-//                Matcher byId = Pattern.compile("agent id\\s*(\\d+)", Pattern.CASE_INSENSITIVE)
-//                        .matcher(userText);
-//                if (byId.find()) {
-//                    return Map.of("agentId", byId.group(1));
-//                }
-//                break;
-//            }
-//            case AGENT_LOOKUP: {
-//                Matcher byKeywordId = Pattern.compile("\\bagent\\s*(\\d+)\\b", Pattern.CASE_INSENSITIVE)
-//                        .matcher(userText);
-//                if (byKeywordId.find()) {
-//                    return Map.of("agentId", byKeywordId.group(1));
-//                }
-//                Matcher byCity = Pattern.compile("agent.*in\\s+([A-Za-z ]+)", Pattern.CASE_INSENSITIVE)
-//                        .matcher(userText);
-//                if (byCity.find()) {
-//                    return Map.of("city", byCity.group(1).trim());
-//                }
-//                Matcher byId = Pattern.compile("\\bagent id\\s*(\\d+)\\b", Pattern.CASE_INSENSITIVE)
-//                        .matcher(userText);
-//                if (byId.find()) {
-//                    return Map.of("agentId", byId.group(1));
-//                }
-//                break;
-//            }
 
             case AGENT_LOOKUP: {
                 // agent 5 / agent id 5
@@ -255,7 +199,7 @@ public class ChatRouter {
 
 
             default:
-                // GREETING, PDF_UPLOAD, FALLBACK → no slots needed
+
                 break;
         }
 

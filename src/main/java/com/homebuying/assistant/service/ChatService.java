@@ -38,7 +38,7 @@ public class ChatService {
         );
 
 
-        Map<?,?> resp = client.post()
+       Map<?,?> resp = client.post()
                 .uri(u -> u
                         .path("/v1beta/models/{model}:generateContent")
                         .queryParam("key", apiKey)
@@ -47,6 +47,31 @@ public class ChatService {
                 .retrieve()
                 .bodyToMono(Map.class)
                 .block();
+
+ //       Map<?, ?> resp = null;
+
+//        // Try v1 first
+//        try {
+//            resp = client.post()
+//                    .uri("/v1/models/{model}:generateContent", model)
+//                    .header("x-goog-api-key", apiKey)
+//                    .bodyValue(body)
+//                    .retrieve()
+//                    .bodyToMono(Map.class)
+//                    .block();
+//        } catch (org.springframework.web.reactive.function.client.WebClientResponseException.NotFound e) {
+//            // Fallback to v1beta on 404
+//            resp = client.post()
+//                    .uri("/v1beta/models/{model}:generateContent", model)
+//                    .header("x-goog-api-key", apiKey)
+//                    .bodyValue(body)
+//                    .retrieve()
+//                    .bodyToMono(Map.class)
+//                    .block();
+//        }
+
+
+
 
         var candidates = (List<?>) resp.get("candidates");
         if (candidates == null || candidates.isEmpty()) {

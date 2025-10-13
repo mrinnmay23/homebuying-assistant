@@ -16,11 +16,12 @@ import java.util.Map;
 @Service
 public class PdfService {
     private static final String PROCESSOR_NAME =
-            "projects/508375352782/locations/us/processors/c6ab4b25d95b23ac";
+      //      "projects/508375352782/locations/us/processors/c6ab4b25d95b23ac";
+            "projects/558159150387/locations/us/processors/de92dcd624cf3ce5";
 
     public Map<String,String> parseLoanEstimate(MultipartFile pdf) throws IOException {
         try (var client = DocumentProcessorServiceClient.create()) {
-            // build up the request
+
             ByteString content = ByteString.copyFrom(pdf.getBytes());
             RawDocument raw = RawDocument.newBuilder()
                     .setContent(content)
@@ -31,14 +32,14 @@ public class PdfService {
                     .setRawDocument(raw)
                     .build();
 
-            // call the API
+
             Document doc = client.processDocument(req).getDocument();
 
-            // NOW pull out formFields, not entities:
+
             Map<String,String> fields = new HashMap<>();
             for (var page : doc.getPagesList()) {
                 for (var ff : page.getFormFieldsList()) {
-                    // TextAnchor to get the actual text:
+
                     String name = ff.getFieldName().getTextAnchor().getContent();
                     String value = ff.getFieldValue().getTextAnchor().getContent();
                     fields.put(name, value);

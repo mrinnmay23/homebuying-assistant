@@ -15,10 +15,7 @@ public class LoanScoreService {
         this.quoteRepo = quoteRepo;
     }
 
-    /**
-     * Computes what percentage of historical quotes are WORSE (higher cost)
-     * than this user’s quote.
-     */
+
     public double computePercentile(double userRate, double userFees) {
         List<Quote> all = quoteRepo.findAll();
         if (all.isEmpty()) {

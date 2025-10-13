@@ -15,16 +15,7 @@ import java.util.Map;
 @RequestMapping("/api/pdf")
 public class PdfController {
 
-//    @PostMapping(value = "/api/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-//    public ResponseEntity<Map<String, String>> uploadPdf(
-//            @RequestParam("file") MultipartFile file
-//    ) {
-//        // For now, just return filename and size
-//        return ResponseEntity.ok(Map.of(
-//                "filename", file.getOriginalFilename(),
-//                "size", file.getSize() + " bytes"
-//        ));
-//    }
+
 
     private final PdfService pdfSvc;
     public PdfController(PdfService pdfSvc) { this.pdfSvc = pdfSvc; }
@@ -39,21 +30,21 @@ public class PdfController {
         }
     }
 
-    // PdfController.java
+
     @PostMapping(value = "/upload-to-chat", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> uploadToChat(@RequestParam("file") MultipartFile file,
                                           jakarta.servlet.http.HttpSession session) {
         try {
             Map<String,String> fields = pdfSvc.parseLoanEstimate(file);
 
-            // get or create ctx
+
             var ctx = (com.homebuying.assistant.chat.LoanContext) session.getAttribute("ctx");
             if (ctx == null) ctx = new com.homebuying.assistant.chat.LoanContext();
 
-            // let your context do the tolerant parsing
+
             ctx.applyPdfFields(fields);
 
-            // save back
+
             session.setAttribute("ctx", ctx);
 
             // build a null-safe response (LinkedHashMap tolerates nulls)

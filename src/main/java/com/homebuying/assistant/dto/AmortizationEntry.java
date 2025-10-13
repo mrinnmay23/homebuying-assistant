@@ -6,10 +6,10 @@ public class AmortizationEntry {
     private double interestPaid;
     private double remainingBalance;
 
-    // No-args constructor
+
     public AmortizationEntry() { }
 
-    // All-args constructor
+
     public AmortizationEntry(int year,
                              double principalPaid,
                              double interestPaid,
@@ -20,7 +20,7 @@ public class AmortizationEntry {
         this.remainingBalance = remainingBalance;
     }
 
-    // Getters & setters...
+
     public int getYear() { return year; }
     public void setYear(int year) { this.year = year; }
     public double getPrincipalPaid() { return principalPaid; }

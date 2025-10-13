@@ -12,22 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class LoanCalculatorController {
 
-//    private final LoanCalculatorService calcService;
-//
-//    public LoanCalculatorController(LoanCalculatorService calcService) {
-//        this.calcService = calcService;
-//    }
-//
-//    @GetMapping("/api/calculate")
-//    public LoanCalculatorResult calculate(
-//            @RequestParam double principal,
-//            @RequestParam double rate,
-//            @RequestParam int term
-//    ) {
-//        double monthly = calcService.calculateMonthlyPayment(principal, rate, term);
-//        return new LoanCalculatorResult(monthly);
-//    }
-//}
+
 
     private final LoanCalculatorService calcService;
     private final ExternalMortgageService external;
