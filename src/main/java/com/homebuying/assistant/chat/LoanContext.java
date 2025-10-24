@@ -1,6 +1,7 @@
 package com.homebuying.assistant.chat;
 
 import java.io.Serializable;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class LoanContext implements Serializable {
@@ -11,65 +12,92 @@ public class LoanContext implements Serializable {
     public Integer creditScore;   // optional (if user ever gives it)
 
 
+    // NEW: raw results + chosen fields
+    public Map<String,String> docaiFields = new LinkedHashMap<>();
+    public Map<String,String> geminiFields = new LinkedHashMap<>();
+    public Map<String,String> finalFields = new LinkedHashMap<>();
+    public Map<String,String> sourceMap = new LinkedHashMap<>(); // loanAmount->docai|gemini
+
+//    public void applyPdfFields(Map<String,String> pdf) {
+//        if (pdf == null) return;
+//
+//        for (var e : pdf.entrySet()) {
+//            String rawKey = e.getKey() == null ? "" : e.getKey();
+//            String rawVal = e.getValue() == null ? "" : e.getValue();
+//
+//            String key = rawKey.toLowerCase().replaceAll("[^a-z ]", " ").replaceAll("\\s+", " ").trim();
+//            String val = rawVal.trim();
+//
+//
+//            if (principal == null &&
+//                    (key.equals("loan amount") || key.equals("amount financed") || key.contains("loan amount"))) {
+//                Double p = parseMoney(val);
+//                if (p != null && p >= 10_000) principal = p;  // sanity check
+//                continue;
+//            }
+//
+//
+//            if ((rate == null || key.contains("interest rate")) &&
+//                    (key.equals("interest rate") || key.contains("interest rate") || key.equals("rate") || key.contains("apr"))) {
+//                Double r = parsePercent(val);
+//                if (r != null && r > 0 && r < 20) {
+//                    if (key.contains("interest rate") || rate == null) rate = r;
+//                }
+//                continue;
+//            }
+//
+//
+//            if (termYears == null && (key.equals("loan term") || key.contains("loan term") || key.contains("years"))) {
+//                Integer ty = parseYears(val);
+//                if (ty != null && ty >= 1 && ty <= 40) termYears = ty;
+//                continue;
+//            }
+//
+//
+//            if (fees == null &&
+//                    (key.contains("fees") || key.contains("closing costs") || key.contains("total closing costs"))) {
+//                Double f = parseMoney(val);
+//                if (f != null && f >= 0) fees = f;
+//            }
+//        }
+//    }
 
     public void applyPdfFields(Map<String,String> pdf) {
         if (pdf == null) return;
-
         for (var e : pdf.entrySet()) {
-            String rawKey = e.getKey() == null ? "" : e.getKey();
-            String rawVal = e.getValue() == null ? "" : e.getValue();
+            String key = (e.getKey() == null ? "" : e.getKey()).toLowerCase();
+            String val = e.getValue() == null ? "" : e.getValue().trim();
 
-            String key = rawKey.toLowerCase().replaceAll("[^a-z ]", " ").replaceAll("\\s+", " ").trim();
-            String val = rawVal.trim();
-
-
-            if (principal == null &&
-                    (key.equals("loan amount") || key.equals("amount financed") || key.contains("loan amount"))) {
+            if (principal == null && (key.contains("loan amount") || key.contains("amount financed") || key.equals("loanamount"))) {
                 Double p = parseMoney(val);
-                if (p != null && p >= 10_000) principal = p;  // sanity check
-                continue;
-            }
-
-
-            if ((rate == null || key.contains("interest rate")) &&
-                    (key.equals("interest rate") || key.contains("interest rate") || key.equals("rate") || key.contains("apr"))) {
+                if (p != null && p >= 10_000) principal = p;
+            } else if ((rate == null || key.contains("interest rate")) &&
+                    (key.contains("interest rate") || key.equals("rate") || key.equals("apr"))) {
                 Double r = parsePercent(val);
-                if (r != null && r > 0 && r < 20) {
-                    if (key.contains("interest rate") || rate == null) rate = r;
-                }
-                continue;
-            }
-
-
-            if (termYears == null && (key.equals("loan term") || key.contains("loan term") || key.contains("years"))) {
+                if (r != null && r > 0 && r < 20) rate = r;
+            } else if (termYears == null && (key.contains("loan term") || key.contains("years") || key.equals("termyears"))) {
                 Integer ty = parseYears(val);
                 if (ty != null && ty >= 1 && ty <= 40) termYears = ty;
-                continue;
-            }
-
-
-            if (fees == null &&
-                    (key.contains("fees") || key.contains("closing costs") || key.contains("total closing costs"))) {
+            } else if (fees == null && (key.contains("fees") || key.contains("closing costs"))) {
                 Double f = parseMoney(val);
                 if (f != null && f >= 0) fees = f;
             }
         }
     }
 
-
-    private static Integer parseYears(String s) {
-        if (s == null) return null;
-        var m = java.util.regex.Pattern
-                .compile("(\\d{1,2})\\s*(years|yrs|yr)?", java.util.regex.Pattern.CASE_INSENSITIVE)
-                .matcher(s);
-        if (m.find()) {
-            try {
-                int y = Integer.parseInt(m.group(1));
-                return (y >= 1 && y <= 40) ? y : null;
-            } catch (Exception ignored) {}
-        }
-        return null;
-    }
+//    private static Integer parseYears(String s) {
+//        if (s == null) return null;
+//        var m = java.util.regex.Pattern
+//                .compile("(\\d{1,2})\\s*(years|yrs|yr)?", java.util.regex.Pattern.CASE_INSENSITIVE)
+//                .matcher(s);
+//        if (m.find()) {
+//            try {
+//                int y = Integer.parseInt(m.group(1));
+//                return (y >= 1 && y <= 40) ? y : null;
+//            } catch (Exception ignored) {}
+//        }
+//        return null;
+//    }
 
 
     public void mergeSlots(Map<String,String> slots) {
@@ -81,6 +109,12 @@ public class LoanContext implements Serializable {
         if (slots.get("creditScore") != null) creditScore = parseInt(slots.get("creditScore"));
     }
 
+
+    private static Integer parseYears(String s) {
+        if (s == null) return null;
+        var m = java.util.regex.Pattern.compile("(\\d{1,2})").matcher(s);
+        return m.find() ? Integer.valueOf(m.group(1)) : null;
+    }
 
     private static Double parseMoney(String s) {
         if (s == null) return null;

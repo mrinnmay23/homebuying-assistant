@@ -38,18 +38,18 @@ public class ChatService {
         );
 
 
-       Map<?,?> resp = client.post()
-                .uri(u -> u
-                        .path("/v1beta/models/{model}:generateContent")
-                        .queryParam("key", apiKey)
-                        .build(model))
-                .bodyValue(body)
-                .retrieve()
-                .bodyToMono(Map.class)
-                .block();
+//       Map<?,?> resp = client.post()
+//                .uri(u -> u
+//                        .path("/v1beta/models/{model}:generateContent")
+//                        .queryParam("key", apiKey)
+//                        .build(model))
+//                .bodyValue(body)
+//                .retrieve()
+//                .bodyToMono(Map.class)
+//                .block();
 
- //       Map<?, ?> resp = null;
-
+//        Map<?, ?> resp = null;
+//
 //        // Try v1 first
 //        try {
 //            resp = client.post()
@@ -70,6 +70,13 @@ public class ChatService {
 //                    .block();
 //        }
 
+        Map<?, ?> resp = client.post()
+                .uri("/v1/models/{model}:generateContent", model)
+                .header("x-goog-api-key", apiKey)
+                .bodyValue(body)
+                .retrieve()
+                .bodyToMono(Map.class)
+                .block();
 
 
 
@@ -83,4 +90,34 @@ public class ChatService {
         List<?> parts = (List<?>) content.get("parts");
         return (String) ((Map<?,?>) parts.get(0)).get("text");
     }
+
+
+    public String askVision(List<Map<String,Object>> imageParts, String instruction) {
+        var parts = new java.util.ArrayList<>(imageParts);
+        parts.add(Map.of("text", instruction));
+
+        var body = Map.of(
+                "contents", List.of(Map.of("role","user","parts", parts))
+        );
+
+
+        Map<?,?> resp = client.post()
+                .uri("/v1/models/{model}:generateContent", model)
+                .header("x-goog-api-key", apiKey)
+                .bodyValue(body)
+                .retrieve()
+                .bodyToMono(Map.class)
+                .block();
+
+
+        var candidates = (List<?>) resp.get("candidates");
+        if (candidates == null || candidates.isEmpty()) return "{}";
+        @SuppressWarnings("unchecked")
+        Map<String,?> content = (Map<String,?>) ((Map<?,?>) candidates.get(0)).get("content");
+        List<?> partsOut = (List<?>) content.get("parts");
+        return (String) ((Map<?,?>) partsOut.get(0)).get("text");
+    }
+
+
+
 }
