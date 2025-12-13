@@ -52,6 +52,12 @@
             </div>
         </form>
 
+        <!-- Index library button (optional/admin) -->
+        <button id="indexBtn" type="button" class="btn btn-outline-secondary btn-sm mb-3">
+            Index Library
+        </button>
+
+
         <!-- chat input -->
         <form id="chat-form" class="row g-2 mb-3">
             <div class="col">
@@ -60,8 +66,46 @@
             </div>
             <div class="col-auto">
                 <button type="submit" class="btn btn-primary">Send</button>
+                <!-- NEW: the green button -->
             </div>
         </form>
+
+
+<!--        &lt;!&ndash; VOICE AREA &ndash;&gt;-->
+<!--        <div class="d-flex align-items-center gap-2 mt-2">-->
+<!--            <button id="mic-btn" type="button" class="btn btn-outline-danger">🎤 Record</button>-->
+<!--            <div class="form-check">-->
+<!--                <input class="form-check-input" type="checkbox" id="voice-llm" checked>-->
+<!--                <label class="form-check-label" for="voice-llm">Use LLM end-to-end</label>-->
+<!--            </div>-->
+<!--            <small id="mic-status" class="text-muted">idle</small>-->
+<!--        </div>-->
+
+        <!-- VOICE (live mic only) -->
+        <div class="d-flex align-items-center gap-2 mt-2">
+            <button id="mic-btn" type="button" class="btn btn-outline-danger">🎤 Record</button>
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="voice-llm" checked>
+                <label class="form-check-label" for="voice-llm">Use LLM end-to-end</label>
+            </div>
+            <small id="mic-status" class="text-muted">idle</small>
+        </div>
+
+
+        <!-- Captions (what the mic heard) -->
+        <div id="captions" class="alert alert-secondary d-none small mb-2"></div>
+
+        <!-- TTS toggle -->
+        <div class="form-check form-switch mb-2">
+            <input class="form-check-input" type="checkbox" id="ttsToggle">
+            <label class="form-check-label" for="ttsToggle">🔊 Read bot replies</label>
+        </div>
+
+        <!-- 📚 RAG toggle -->
+        <div class="form-check form-switch mb-2">
+            <input class="form-check-input" type="checkbox" id="myLibToggle">
+            <label class="form-check-label" for="myLibToggle">📚 Answer from My Library</label>
+        </div>
 
         <!-- chat log -->
         <div id="log" class="border rounded p-3"
@@ -90,22 +134,105 @@
         if (!msg) return;
         say('You', msg);
 
-        const resp = await fetch(/*[[ @{/api} ]]*/, {
+        // const resp = await fetch(/*[[ @{/api} ]]*/, {
+        //     method: 'POST',
+        //     headers: { 'Content-Type': 'application/json' },
+        //     body: JSON.stringify({ message: msg })
+        // });
+        // const body = await resp.json();
+
+        const useLib = document.getElementById('myLibToggle')?.checked;
+        const url  = useLib ? /*[[ @{/api/rag/ask} ]]*/ '/api/rag/ask'
+            : /*[[ @{/api} ]]*/ '/api';
+        const bodyPayload = useLib ? { q: msg } : { message: msg };
+
+        const resp = await fetch(url, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ message: msg })
+            body: JSON.stringify(bodyPayload)
         });
         const body = await resp.json();
+
+
+
+
+        //   // show either a plain reply or a summarized JSON
+      //   if (body.reply) {
+      //       say('Bot', body.reply);
+      //   } else if (body.monthlyPayment) {
+      //       say('Bot', `Monthly payment: $${Number(body.monthlyPayment).toFixed(2)}`);
+      //   } else if (body.percentile) {
+      //       say('Bot', `Your offer is at the ${Number(body.percentile).toFixed(1)}th percentile.`);
+      //   } else if (body.quotes) {
+      //       say('Bot', 'Here are your quotes:');
+      //       const ul = document.createElement('ul');
+      //       ul.style.marginTop = '6px';
+      //       (body.quotes || []).forEach(q => {
+      //           const li = document.createElement('li');
+      //           li.textContent = `Rate ${q.rate}% | Fees ${q.fees} | Score range ${q.minScore}-${q.maxScore} `;
+      //           ul.appendChild(li);
+      //       });
+      //       log.appendChild(ul);
+      //       log.scrollTop = log.scrollHeight;
+      //   } else if (body.schedule) {
+      //       say('Bot', 'Amortization (first 5 years):');
+      //       const first = (body.schedule || []).slice(0,5);
+      //       const table = document.createElement('table');
+      //       table.className = 'table table-sm';
+      //       table.innerHTML = `
+      // <thead><tr><th>Year</th><th>Principal</th><th>Interest</th><th>Balance</th></tr></thead>
+      // <tbody>
+      //   ${first.map(r => `
+      //     <tr>
+      //       <td>${r.year}</td>
+      //       <td>${r.principalPaid}</td>
+      //       <td>${r.interestPaid}</td>
+      //       <td>${r.remainingBalance}</td>
+      //     </tr>`).join('')}
+      // </tbody>`;
+      //       log.appendChild(table);
+      //       log.scrollTop = log.scrollHeight;
+      //   } else if (body.refinance) {
+      //       const r = body.refinance;
+      //       say('Bot', `Old: $${r.oldPayment} → New: $${r.newPayment} | Save $${r.monthlySavings}/mo | Should refinance? ${r.shouldRefinance ? 'Yes' : 'No'}`);
+      //   } else if (body.agent) {
+      //       // NEW: pretty render agent instead of dumping JSON
+      //       const a = body.agent;
+      //       const card = document.createElement('div');
+      //       card.className = 'card mb-2';
+      //       card.innerHTML = `
+      //         <div class="card-body d-flex align-items-center gap-3">
+      //           ${a.imageFilename ? `<img src="/images//${a.imageFilename}" alt="${a.name}" class="rounded-circle" style="width:64px;height:64px;object-fit:cover;">` : ''}
+      //           <div>
+      //             <div class="fw-semibold">${a.name} (ID ${a.id})</div>
+      //             <div>
+      //               <a href="mailto:${a.email}">${a.email}</a>
+      //               &nbsp;·&nbsp;
+      //               <a href="tel:${a.phone}">${a.phone}</a>
+      //             </div>
+      //           </div>
+      //         </div>`;
+      //       log.appendChild(card);
+      //       log.scrollTop = log.scrollHeight;
+      //   } else {
+      //       say('Bot', `<pre class="mb-0">${JSON.stringify(body, null, 2)}</pre>`);
+      //   }
 
         // show either a plain reply or a summarized JSON
         if (body.reply) {
             say('Bot', body.reply);
+            if (ttsOn()) speak(body.reply);
         } else if (body.monthlyPayment) {
-            say('Bot', `Monthly payment: $${Number(body.monthlyPayment).toFixed(2)}`);
+            const line = `Monthly payment: $${Number(body.monthlyPayment).toFixed(2)}`;
+            say('Bot', line);
+            if (ttsOn()) speak(line);
         } else if (body.percentile) {
-            say('Bot', `Your offer is at the ${Number(body.percentile).toFixed(1)}th percentile.`);
+            const line = `Your offer is at the ${Number(body.percentile).toFixed(1)}th percentile.`;
+            say('Bot', line);
+            if (ttsOn()) speak(line);
         } else if (body.quotes) {
             say('Bot', 'Here are your quotes:');
+            if (ttsOn()) speak('Here are your quotes');
             const ul = document.createElement('ul');
             ul.style.marginTop = '6px';
             (body.quotes || []).forEach(q => {
@@ -117,46 +244,56 @@
             log.scrollTop = log.scrollHeight;
         } else if (body.schedule) {
             say('Bot', 'Amortization (first 5 years):');
+            if (ttsOn()) speak('Here is your amortization for the first five years.');
             const first = (body.schedule || []).slice(0,5);
             const table = document.createElement('table');
             table.className = 'table table-sm';
             table.innerHTML = `
-      <thead><tr><th>Year</th><th>Principal</th><th>Interest</th><th>Balance</th></tr></thead>
-      <tbody>
-        ${first.map(r => `
-          <tr>
-            <td>${r.year}</td>
-            <td>${r.principalPaid}</td>
-            <td>${r.interestPaid}</td>
-            <td>${r.remainingBalance}</td>
-          </tr>`).join('')}
-      </tbody>`;
+        <thead><tr><th>Year</th><th>Principal</th><th>Interest</th><th>Balance</th></tr></thead>
+        <tbody>
+          ${first.map(r => `
+            <tr>
+              <td>${r.year}</td>
+              <td>${r.principalPaid}</td>
+              <td>${r.interestPaid}</td>
+              <td>${r.remainingBalance}</td>
+            </tr>`).join('')}
+        </tbody>`;
             log.appendChild(table);
             log.scrollTop = log.scrollHeight;
         } else if (body.refinance) {
             const r = body.refinance;
-            say('Bot', `Old: $${r.oldPayment} → New: $${r.newPayment} | Save $${r.monthlySavings}/mo | Should refinance? ${r.shouldRefinance ? 'Yes' : 'No'}`);
+            const ui = `Old: $${r.oldPayment} → New: $${r.newPayment} | Save $${r.monthlySavings}/mo | Should refinance? ${r.shouldRefinance ? 'Yes' : 'No'}`;
+            say('Bot', ui);
+            if (ttsOn()) {
+                const line = `Old payment ${r.oldPayment} dollars. New payment ${r.newPayment} dollars. `
+                    + `Monthly savings ${r.monthlySavings} dollars. `
+                    + `Should refinance? ${r.shouldRefinance ? 'Yes' : 'No'}.`;
+                speak(line);
+            }
         } else if (body.agent) {
-            // NEW: pretty render agent instead of dumping JSON
             const a = body.agent;
             const card = document.createElement('div');
             card.className = 'card mb-2';
             card.innerHTML = `
-              <div class="card-body d-flex align-items-center gap-3">
-                ${a.imageFilename ? `<img src="/images//${a.imageFilename}" alt="${a.name}" class="rounded-circle" style="width:64px;height:64px;object-fit:cover;">` : ''}
-                <div>
-                  <div class="fw-semibold">${a.name} (ID ${a.id})</div>
-                  <div>
-                    <a href="mailto:${a.email}">${a.email}</a>
-                    &nbsp;·&nbsp;
-                    <a href="tel:${a.phone}">${a.phone}</a>
-                  </div>
-                </div>
-              </div>`;
+        <div class="card-body d-flex align-items-center gap-3">
+          ${a.imageFilename ? `<img src="/images//${a.imageFilename}" alt="${a.name}" class="rounded-circle" style="width:64px;height:64px;object-fit:cover;">` : ''}
+          <div>
+            <div class="fw-semibold">${a.name} (ID ${a.id})</div>
+            <div>
+              <a href="mailto:${a.email}">${a.email}</a>
+              &nbsp;·&nbsp;
+              <a href="tel:${a.phone}">${a.phone}</a>
+            </div>
+          </div>
+        </div>`;
             log.appendChild(card);
             log.scrollTop = log.scrollHeight;
+            if (ttsOn()) speak(`Showing agent ${a.name}`);
         } else {
-            say('Bot', `<pre class="mb-0">${JSON.stringify(body, null, 2)}</pre>`);
+            const dump = JSON.stringify(body, null, 2);
+            say('Bot', `<pre class="mb-0">${dump}</pre>`);
+            if (ttsOn()) speak('I have shown a structured response.');
         }
 
         document.getElementById('msg').value = '';
@@ -188,9 +325,347 @@
         ].filter(Boolean).join(', ');
 
         say('Bot', json.reply || 'PDF processed.');
+
+        // Tiny confirmation line: which fields Gemini found
+        const checks = [
+            n.principal != null ? "amount ✓" : "amount –",
+            n.rate != null ? "rate ✓" : "rate –",
+            n.termYears != null ? "term ✓" : "term –",
+            n.fees != null ? "fees ✓" : "fees –"
+        ].join("  ");
+        say('Bot', `Read via Gemini: ${checks}`);
+
+
         if (have) say('Bot', `Saved from PDF → ${have}`);
         e.target.reset();
     });
+
+    // // --- voice mode toggle: remember in localStorage ---
+    // const voiceToggle = document.getElementById('voiceToggle');
+    // voiceToggle.checked = localStorage.getItem('voiceMode') === 'gemini';
+    // voiceToggle.addEventListener('change', () => {
+    //     localStorage.setItem('voiceMode', voiceToggle.checked ? 'gemini' : 'pipeline');
+    // });
+
+    // // --- voice send ---
+    // document.getElementById('voice-form').addEventListener('submit', async (e) => {
+    //     e.preventDefault();
+    //     const f = document.getElementById('voice-file').files?.[0];
+    //     if (!f) { say('Bot', '<span class="text-danger">Pick/record an audio clip first.</span>'); return; }
+    //     say('You', '[sent a voice message]');
+    //
+    //     const fd = new FormData();
+    //     fd.append('audio', f);
+    //
+    //     const mode = localStorage.getItem('voiceMode') || 'pipeline';
+    //     const resp = await fetch(/*[[ @{/api/voice} ]]*/, {
+    //         method: 'POST',
+    //         headers: { 'X-Voice-Mode': mode },
+    //         body: fd
+    //     });
+    //     const j = await resp.json();
+    //
+    //     if (j.error) {
+    //         say('Bot', `<span class="text-danger">${j.error}</span>`);
+    //         return;
+    //     }
+    //
+    //     // show which path was used and any fallback
+    //     const tag = j.fellBack ? `(${j.modeUsed}, fell back)` : `(${j.modeUsed})`;
+    //     if (j.transcript) say('Bot', `<em>Heard:</em> ${j.transcript}`);
+    //     say('Bot', `${j.reply} <span class="text-muted"> ${tag}</span>`);
+    //
+    //     // Optional: if you add TTS and return audioBase64, you can auto-play it here:
+    //     // if (j.audioBase64) { new Audio(`data:audio/mp3;base64,${j.audioBase64}`).play(); }
+    //
+    //     e.target.reset();
+    // });
+
+    // ---------- VOICE: mic record → POST /api/voice/ask ----------
+    let mediaRecorder = null;
+    let chunks = [];
+    let streamRef = null;
+    const micBtn = document.getElementById('mic-btn');
+    const micStatus = document.getElementById('mic-status');
+    const useLLM = document.getElementById('voice-llm');
+
+    function supportsMediaRecorder() {
+        return !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia && window.MediaRecorder);
+    }
+
+    async function startRec() {
+        if (!supportsMediaRecorder()) {
+            say('Bot', `<span class="text-danger">This browser can’t record audio here. Use Chrome on localhost/HTTPS.</span>`);
+            return;
+        }
+        try {
+            streamRef = await navigator.mediaDevices.getUserMedia({ audio: true });
+            const mime = MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : '';
+            mediaRecorder = new MediaRecorder(streamRef, mime ? { mimeType: mime } : undefined);
+            chunks = [];
+
+            mediaRecorder.ondataavailable = (e) => { if (e.data && e.data.size > 0) chunks.push(e.data); };
+            mediaRecorder.onstop = async () => {
+                // Build the blob
+                const blob = new Blob(chunks, { type: mediaRecorder.mimeType || 'audio/webm' });
+                console.log('[mic] blob size:', blob.size, 'type:', blob.type);
+
+                if (!blob || blob.size === 0) {
+                    micStatus.textContent = 'idle';
+                    say('Bot', `<span class="text-danger">No audio captured. Try speaking for ~1–2 seconds.</span>`);
+                    cleanupStream();
+                    return;
+                }
+
+                const fd = new FormData();
+                fd.append('audio', blob, 'speech.webm');
+                fd.append('useLLM', useLLM && useLLM.checked ? 'true' : 'false');
+
+                say('You', '[voice message]');
+                micStatus.textContent = 'uploading…';
+
+                try {
+                    const resp = await fetch(/*[[ @{/api/voice/ask} ]]*/, { method: 'POST', body: fd });
+                    const body = await resp.json();
+                    if (body.transcript) showCaptions(body.transcript);
+
+                    micStatus.textContent = 'idle';
+
+            //         // inside mediaRecorder.onstop → after `const body = await resp.json();`:
+            //
+            //         if (body.reply) {
+            //             say('Bot', body.reply);
+            //         } else if (body.monthlyPayment) {
+            //             say('Bot', `Monthly payment: $${Number(body.monthlyPayment).toFixed(2)}`);
+            //         } else if (body.percentile) {
+            //             say('Bot', `Your offer is among the very best we see (top ~${Number(body.percentile).toFixed(0)}%).`);
+            //         } else if (body.schedule) {
+            //             // (existing schedule render)
+            //         } else if (body.refinance) {
+            //             const r = body.refinance;
+            //             say('Bot', `Old: $${r.oldPayment} → New: $${r.newPayment} | Save $${r.monthlySavings}/mo | ` +
+            //                 `Should refinance? ${r.shouldRefinance ? 'Yes' : 'No'}`);
+            //         } else if (body.error) {
+            //             say('Bot', `<span class="text-danger">${body.error}</span>`);
+            //         } else {
+            //             say('Bot', `<pre class="mb-0">${JSON.stringify(body, null, 2)}</pre>`);
+            //         }
+            //
+            //
+            //         micStatus.textContent = 'idle';
+            //
+            //         if (body.reply) {
+            //             say('Bot', body.reply);
+            //         } else if (body.monthlyPayment) {
+            //             say('Bot', `Monthly payment: $${Number(body.monthlyPayment).toFixed(2)}`);
+            //         } else if (body.percentile) {
+            //             say('Bot', `Your offer is among the very best we see (top ~${Number(body.percentile).toFixed(0)}%).`);
+            //         } else if (body.schedule) {
+            //             say('Bot', 'Amortization (first 5 years):');
+            //             const first = (body.schedule || []).slice(0,5);
+            //             const table = document.createElement('table');
+            //             table.className = 'table table-sm';
+            //             table.innerHTML = `
+            // <thead><tr><th>Year</th><th>Principal</th><th>Interest</th><th>Balance</th></tr></thead>
+            // <tbody>
+            //   ${first.map(r => `
+            //     <tr>
+            //       <td>${r.year}</td>
+            //       <td>${r.principalPaid}</td>
+            //       <td>${r.interestPaid}</td>
+            //       <td>${r.remainingBalance}</td>
+            //     </tr>`).join('')}
+            // </tbody>`;
+            //             log.appendChild(table);
+            //             log.scrollTop = log.scrollHeight;
+            //         } else if (body.error) {
+            //             say('Bot', `<span class="text-danger">${body.error}</span>`);
+            //         } else {
+            //             say('Bot', `<pre class="mb-0">${JSON.stringify(body, null, 2)}</pre>`);
+            //         }
+//////////////////////////////////////////////////////////////////////////////
+    //                 if (body.reply) {
+    //                     say('Bot', body.reply);
+    //                 } else if (body.monthlyPayment) {
+    //                     say('Bot', `Monthly payment: $${Number(body.monthlyPayment).toFixed(2)}`);
+    //                 } else if (body.percentile) {
+    //                     say('Bot', `Your offer is among the very best we see (top ~${Number(body.percentile).toFixed(0)}%).`);
+    //                 } else if (body.schedule) {
+    //                     say('Bot', 'Amortization (first 5 years):');
+    //                     const first = (body.schedule || []).slice(0,5);
+    //                     const table = document.createElement('table');
+    //                     table.className = 'table table-sm';
+    //                     table.innerHTML = `
+    // <thead><tr><th>Year</th><th>Principal</th><th>Interest</th><th>Balance</th></tr></thead>
+    // <tbody>
+    //   ${first.map(r => `
+    //     <tr>
+    //       <td>${r.year}</td>
+    //       <td>${r.principalPaid}</td>
+    //       <td>${r.interestPaid}</td>
+    //       <td>${r.remainingBalance}</td>
+    //     </tr>`).join('')}
+    // </tbody>`;
+    //                     log.appendChild(table);
+    //                     log.scrollTop = log.scrollHeight;
+    //                 } else if (body.refinance) {
+    //                     const r = body.refinance;
+    //                     say('Bot', `Old: $${r.oldPayment} → New: $${r.newPayment} | Save $${r.monthlySavings}/mo | Should refinance? ${r.shouldRefinance ? 'Yes' : 'No'}`);
+    //                 } else if (body.error) {
+    //                     say('Bot', `<span class="text-danger">${body.error}</span>`);
+    //                 } else {
+    //                     say('Bot', `<pre class="mb-0">${JSON.stringify(body, null, 2)}</pre>`);
+    //                 }
+////////////////////////////////////////////////////
+
+                    // if (body.reply) {
+                    //     say('Bot', body.reply);
+                    //     if (ttsOn()) speak(body.reply);
+                    // } else if (body.monthlyPayment) {
+
+                    if (body.reply) {
+                        say('Bot', body.reply);
+                        if (ttsOn()) speak(body.reply);
+
+                        if (Array.isArray(body.sources) && body.sources.length) {
+                            const s = body.sources
+                                .map(src => `${src.file}${src.page != null ? ` p.${src.page}` : ''}`)
+                                .join(' • ');
+                            say('Bot', `<small class="text-muted">Sources: ${s}</small>`);
+                        }
+                    } else if (body.monthlyPayment) {
+
+                        const line = `Monthly payment: $${Number(body.monthlyPayment).toFixed(2)}`;
+                        say('Bot', line);
+                        if (ttsOn()) speak(line);
+                    } else if (body.percentile) {
+                        const line = `Your offer is among the very best we see. Percentile ${Number(body.percentile).toFixed(0)}.`;
+                        say('Bot', line);
+                        if (ttsOn()) speak(line);
+                    } else if (body.schedule) {
+                        say('Bot', 'Amortization (first 5 years):');
+                        if (ttsOn()) speak('Here is your amortization for the first five years.');
+                        const first = (body.schedule || []).slice(0,5);
+                        const table = document.createElement('table');
+                        table.className = 'table table-sm';
+                        table.innerHTML = `
+      <thead><tr><th>Year</th><th>Principal</th><th>Interest</th><th>Balance</th></tr></thead>
+      <tbody>
+        ${first.map(r => `
+          <tr>
+            <td>${r.year}</td>
+            <td>${r.principalPaid}</td>
+            <td>${r.interestPaid}</td>
+            <td>${r.remainingBalance}</td>
+          </tr>`).join('')}
+      </tbody>`;
+                        log.appendChild(table);
+                        log.scrollTop = log.scrollHeight;
+                    } else if (body.refinance) {
+                        const r = body.refinance;
+                        const ui = `Old: $${r.oldPayment} → New: $${r.newPayment} | Save $${r.monthlySavings}/mo | Should refinance? ${r.shouldRefinance ? 'Yes' : 'No'}`;
+                        say('Bot', ui);
+                        if (ttsOn()) {
+                            const line = `Old payment ${r.oldPayment} dollars. New payment ${r.newPayment} dollars. `
+                                + `Monthly savings ${r.monthlySavings} dollars. `
+                                + `Should refinance? ${r.shouldRefinance ? 'Yes' : 'No'}.`;
+                            speak(line);
+                        }
+                    } else if (body.error) {
+                        say('Bot', `<span class="text-danger">${body.error}</span>`);
+                        if (ttsOn()) speak('There was an error processing your voice message.');
+                    } else {
+                        const dump = JSON.stringify(body, null, 2);
+                        say('Bot', `<pre class="mb-0">${dump}</pre>`);
+                        if (ttsOn()) speak('I have shown a structured response.');
+                    }
+
+
+                } catch (e) {
+                    micStatus.textContent = 'idle';
+                    say('Bot', `<span class="text-danger">Voice request failed: ${String(e)}</span>`);
+                }
+                cleanupStream();
+            };
+
+            mediaRecorder.start();
+            // Minimum record time helps avoid empty blobs
+            setTimeout(() => { micStatus.textContent = 'listening…'; }, 50);
+            micBtn.classList.remove('btn-outline-danger');
+            micBtn.classList.add('btn-danger');
+            micBtn.textContent = '⏹ Stop';
+        } catch (err) {
+            say('Bot', `<span class="text-danger">Microphone error: ${String(err)}</span>`);
+            cleanupStream();
+        }
+    }
+
+
+    function ttsOn(){ return document.getElementById('ttsToggle')?.checked; }
+
+    function stopRec() {
+        if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+            mediaRecorder.stop();
+        } else {
+            say('Bot', '<span class="text-danger">No active recording. Click Record first.</span>');
+        }
+        micBtn.classList.add('btn-outline-danger');
+        micBtn.classList.remove('btn-danger');
+        micBtn.textContent = '🎤 Record';
+        micStatus.textContent = 'processing…';
+    }
+
+    function cleanupStream() {
+        if (streamRef) {
+            streamRef.getTracks().forEach(t => t.stop());
+            streamRef = null;
+        }
+    }
+
+    micBtn.addEventListener('click', () => {
+        if (!mediaRecorder || mediaRecorder.state === 'inactive') startRec();
+        else stopRec();
+    });
+
+    function showCaptions(text){
+        const el = document.getElementById('captions');
+        if (!text) { el.classList.add('d-none'); el.textContent = ''; return; }
+        el.textContent = `Heard: ${text}`;
+        el.classList.remove('d-none');
+    }
+
+    // Simple browser TTS (no backend setup needed)
+    function speak(text){
+        if (!text || !window.speechSynthesis) return;
+        const utter = new SpeechSynthesisUtterance(String(text).replace(/<[^>]+>/g,' '));
+        utter.lang = 'en-US';
+        utter.rate = 1;
+        utter.pitch = 1;
+        speechSynthesis.cancel();
+        speechSynthesis.speak(utter);
+    }
+
+
+    const indexBtn = document.getElementById('indexBtn');
+    if (indexBtn) {
+        indexBtn.addEventListener('click', async () => {
+            indexBtn.disabled = true;
+            indexBtn.textContent = 'Indexing…';
+            try {
+                const r = await fetch(/*[[ @{/api/rag/index} ]]*/ '/api/rag/index', { method:'POST' });
+                const j = await r.json();
+                if (j.error) say('Bot', `<span class="text-danger">${j.error}</span>`);
+                else say('Bot', `Indexed chunks: ${j.indexedChunks}`);
+            } catch (e) {
+                say('Bot', `<span class="text-danger">Index failed: ${String(e)}</span>`);
+            } finally {
+                indexBtn.disabled = false;
+                indexBtn.textContent = 'Index Library';
+            }
+        });
+    }
+
+
     /*]]>*/
 </script>
 </body>
