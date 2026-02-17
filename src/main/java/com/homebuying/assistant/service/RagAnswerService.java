@@ -1,6 +1,10 @@
 package com.homebuying.assistant.service;
 
 import org.springframework.stereotype.Service;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -12,8 +16,14 @@ public class RagAnswerService {
         this.rag = rag; this.chat = chat;
     }
 
+    public record RagAnswer(String reply, List<Map<String,Object>> sources) {}
+
     public String answerFromLibrary(String question) throws Exception {
         var hits = rag.retrieveTop(question, 20);
+        if (hits == null || hits.isEmpty()) {
+            return "I don't have that in my library.";
+        }
+
         String context = hits.stream()
                 .map(h -> h.chunk.text)
                 .collect(Collectors.joining("\n\n----\n\n"));
@@ -32,6 +42,41 @@ public class RagAnswerService {
 
         return chat.ask(prompt); // reuse your Gemini text call
     }
+
+
+
+
+
+    public RagAnswer answerFromLibraryRich(String question) throws Exception {
+        var hits = rag.retrieveTop(question, 6);
+
+        if (hits == null || hits.isEmpty()) {
+            return new RagAnswer("I don't have that in my library.", List.of());
+        }
+
+        String context = hits.stream().map(h -> h.chunk.text)
+                .collect(Collectors.joining("\n\n----\n\n"));
+
+        String prompt =
+                "Answer ONLY from the CONTEXT below. If the answer is not present, say 'I don't have that in my library.'\n\n"
+                        + "CONTEXT:\n" + context + "\n\n"
+                        + "QUESTION: " + question + "\n"
+                        + "Answer:";
+
+        String reply = chat.ask(prompt);
+
+        List<Map<String, Object>> sources = hits.stream().map(h -> {
+            Map<String, Object> m = new HashMap<>();
+            m.put("file", h.chunk.document.filename);
+            m.put("page", h.chunk.pageStart);
+            return m;
+        }).collect(Collectors.toList());
+
+        return new RagAnswer(reply, sources);
+    }
+
+
+
 }
 //@Service
 //public class RagAnswerService {

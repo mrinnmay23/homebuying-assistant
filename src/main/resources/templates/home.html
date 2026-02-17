@@ -48,6 +48,8 @@
                 <a class="nav-link" th:href="@{/amortization}">Amortization</a>
                 <a class="nav-link" th:href="@{/refinance}">Refinance</a>
                 <a class="nav-link" th:href="@{/upload-pdf}">PDF Upload</a>
+                <a class="nav-link" th:href="@{/ocr}">Image OCR</a>
+                <a class="nav-link" th:href="@{/video}">Video Tour</a>
                 <a class="nav-link" th:href="@{/agent}">Agent Lookup</a>
             </div>
         </div>
@@ -71,8 +73,9 @@
     </div>
 
     <!-- What it does -->
+    <!-- What it does -->
     <div class="row g-4 mt-2">
-        <div class="col-md-4">
+        <div class="col-md-3">
             <div class="card card-glass h-100">
                 <div class="card-body">
                     <h5 class="card-title">Compare Offers</h5>
@@ -83,7 +86,8 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-4">
+
+        <div class="col-md-3">
             <div class="card card-glass h-100">
                 <div class="card-body">
                     <h5 class="card-title">Understand the Numbers</h5>
@@ -95,10 +99,23 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-4">
+
+        <div class="col-md-3">
             <div class="card card-glass h-100">
                 <div class="card-body">
-                    <h5 class="card-title">Upload & Extract</h5>
+                    <h5 class="card-title">Extract from Image (OCR)</h5>
+                    <p class="card-text small-muted">
+                        Upload a Loan Estimate screenshot/photo. We auto-fill loan amount, rate, and term—and you can send it to the Calculator in one click.
+                    </p>
+                    <a th:href="@{/ocr}" class="btn btn-sm btn-outline-primary">Try Image OCR</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card card-glass h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Upload & Extract (PDF)</h5>
                     <p class="card-text small-muted">
                         Upload a Loan Estimate PDF and we’ll pull key fields (rate, fees, amount) using Document AI.
                     </p>
@@ -107,6 +124,7 @@
             </div>
         </div>
     </div>
+
 
     <!-- Features grid -->
     <h3 class="mt-5">Features at a glance</h3>
@@ -184,6 +202,31 @@
         <div class="col">
             <div class="card feature-card card-glass h-100">
                 <div class="card-body">
+                    <h5 class="card-title">🖼️ Image OCR → Auto-fill Calculator</h5>
+                    <p class="small-muted">
+                        Upload a Loan Estimate screenshot and we extract key values (loan amount, interest rate, term). Then send them to the Loan Calculator instantly.
+                    </p>
+                    <a th:href="@{/ocr}" class="btn btn-outline-secondary btn-sm">Open OCR</a>
+                    <a th:href="@{/calculator}" class="btn btn-outline-secondary btn-sm ms-2">Open Calculator</a>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="col">
+            <div class="card feature-card card-glass h-100">
+                <div class="card-body">
+                    <h5 class="card-title">🎥 Video Tour Scanner</h5>
+                    <p class="small-muted">Upload a short property tour video and get detected tags (e.g., kitchen, stairs, balcony) with timestamps.</p>
+                    <a th:href="@{/video}" class="btn btn-outline-secondary btn-sm">Analyze Video</a>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="col">
+            <div class="card feature-card card-glass h-100">
+                <div class="card-body">
                     <h5 class="card-title">🧑‍💼 Agent Lookup</h5>
                     <p class="small-muted">Browse demo agents or open a profile from a quote to see contact details.</p>
                     <a th:href="@{/agent}" class="btn btn-outline-secondary btn-sm">Find Agent</a>
@@ -236,12 +279,15 @@
         <div class="card-body">
             <h5 class="card-title">How to use this site</h5>
             <ol class="small-muted mb-0">
-                <li>Start with the <a th:href="@{/chat}">Chatbot</a>—ask anything in plain language.</li>
-                <li>Check <a th:href="@{/quotes}">Quotes</a> with your credit score to see example offers.</li>
-                <li>Use the <a th:href="@{/calculator}">Calculator</a> & <a th:href="@{/amortization}">Amortization</a> to understand payments over time.</li>
-                <li>Have a Loan Estimate PDF? <a th:href="@{/upload-pdf}">Upload it</a> and we’ll extract the key fields for you.</li>
-                <li>Compare your deal with <a th:href="@{/score}">Offer Score</a> and explore savings in <a th:href="@{/refinance}">Refinance</a>.</li>
+                <li>Start with the <a th:href="@{/chat}">Chatbot</a>—ask anything in plain language (rates, fees, closing costs, “is this deal good?”).</li>
+                <li>Check <a th:href="@{/quotes}">Quotes</a> using your credit score to see example offers and agent profiles.</li>
+                <li>Use the <a th:href="@{/calculator}">Calculator</a> to estimate monthly payments, then explore the full timeline in <a th:href="@{/amortization}">Amortization</a>.</li>
+                <li>If you have a Loan Estimate screenshot/photo, use <a th:href="@{/ocr}">Image OCR</a> to auto-fill loan amount, interest rate, and term—then click “Use in Calculator”.</li>
+                <li>If you have the Loan Estimate as a PDF, use <a th:href="@{/upload-pdf}">PDF Upload</a> (Document AI extraction) to pull key fields automatically.</li>
+                <li>Want a quick benchmark? Use <a th:href="@{/score}">Offer Score</a> to see how competitive your rate/fees are, and try <a th:href="@{/refinance}">Refinance</a> for savings estimates.</li>
+                <li>Have a short property tour video? Use <a th:href="@{/video}">Video Tour</a> to detect important tags/scenes (e.g., kitchen, stairs, balcony) with timestamps.</li>
             </ol>
+
         </div>
     </div>
 </div>

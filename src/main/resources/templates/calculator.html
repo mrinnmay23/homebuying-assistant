@@ -154,6 +154,32 @@
         }
     });
 </script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const raw = localStorage.getItem("ocrCalculatorPrefill");
+        if (!raw) return;
+
+        let data;
+        try { data = JSON.parse(raw); } catch (e) { return; }
+
+        // Fill by placeholders (because your inputs likely have no IDs)
+        const principalEl = document.querySelector('input[placeholder="Principal"]');
+        const rateEl      = document.querySelector('input[placeholder="Rate (%)"]');
+        const termEl      = document.querySelector('input[placeholder="Term (yr)"]');
+
+        if (principalEl && data.loanAmount) principalEl.value = data.loanAmount;
+        if (rateEl && data.interestRate)    rateEl.value = data.interestRate;
+        if (termEl && data.termYears)       termEl.value = data.termYears;
+
+        // Optional: auto-click Calculate after filling
+        // document.querySelector('button[type="submit"], button#calculateBtn, button.btn-primary')?.click();
+
+        localStorage.removeItem("ocrCalculatorPrefill");
+    });
+</script>
+
+
 </body>
 </html>
 

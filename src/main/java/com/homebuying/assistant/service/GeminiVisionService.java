@@ -75,7 +75,9 @@ public class GeminiVisionService {
     private static List<Map<String,Object>> pdfToImageParts(MultipartFile pdf, int maxPages) throws Exception {
         try (PDDocument doc = Loader.loadPDF(pdf.getBytes())) {  // << use Loader here
             PDFRenderer r = new PDFRenderer(doc);
-            int pages = Math.min(doc.getNumberOfPages(), 2);
+  //          int pages = Math.min(doc.getNumberOfPages(), 2);
+            int pages = Math.min(doc.getNumberOfPages(), maxPages);
+
             List<Map<String,Object>> parts = new ArrayList<>();
             for (int i = 0; i < pages; i++) {
                 BufferedImage img = r.renderImageWithDPI(i, 150);
@@ -96,5 +98,69 @@ public class GeminiVisionService {
             return parts;
         }
     }
+
+    public String answerFromLoanSummary(Map<String,String> summary, String question) {
+        // make a modifiable copy
+        Map<String,String> s = new LinkedHashMap<>(summary);
+
+        // If monthly_payment missing, compute it from loan_amount + interest_rate + termYears
+        if (isBlank(s.get("monthly_payment"))) {
+            Double P = parseMoney(s.get("loan_amount"));
+            Double annualRate = parsePercent(s.get("interest_rate"));
+            Integer years = parseYears(s.get("loan_term_years"));
+
+            if (P != null && annualRate != null && years != null) {
+                double mRate = annualRate / 12.0;
+                int n = years * 12;
+
+                // standard mortgage formula
+                double payment = (P * mRate * Math.pow(1 + mRate, n)) / (Math.pow(1 + mRate, n) - 1);
+                s.put("monthly_payment", String.format("$%,.2f (computed)", payment));
+            }
+        }
+
+        String contextJson = new com.google.gson.Gson().toJson(s);
+
+        String prompt =
+                "You are a mortgage assistant. Use ONLY the JSON fields below.\n" +
+                        "If something is missing, say 'Not found in this PDF'.\n\n" +
+                        "LOAN_SUMMARY_JSON:\n" + contextJson + "\n\n" +
+                        "Question: " + question + "\n\n" +
+                        "Answer in 2-5 bullets.";
+
+        // ✅ use your existing ChatService
+        return chat.ask(prompt);
+    }
+
+    private static boolean isBlank(String s) {
+        return s == null || s.trim().isEmpty();
+    }
+
+    private static Double parseMoney(String s) {
+        if (isBlank(s)) return null;
+        // keep digits and dot
+        String cleaned = s.replaceAll("[^0-9.]", "");
+        if (cleaned.isBlank()) return null;
+        try { return Double.parseDouble(cleaned); } catch (Exception e) { return null; }
+    }
+
+    private static Double parsePercent(String s) {
+        if (isBlank(s)) return null;
+        String cleaned = s.replaceAll("[^0-9.]", "");
+        if (cleaned.isBlank()) return null;
+        try {
+            double pct = Double.parseDouble(cleaned);
+            return pct / 100.0; // convert 5.25 -> 0.0525
+        } catch (Exception e) { return null; }
+    }
+
+    private static Integer parseYears(String s) {
+        if (isBlank(s)) return null;
+        String cleaned = s.replaceAll("[^0-9]", "");
+        if (cleaned.isBlank()) return null;
+        try { return Integer.parseInt(cleaned); } catch (Exception e) { return null; }
+    }
+
+
 
 }

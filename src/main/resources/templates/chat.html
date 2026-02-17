@@ -44,7 +44,7 @@
 
         <!-- ADDED: PDF upload to feed the chat context -->
         <form id="pdf-form" enctype="multipart/form-data" class="row g-2 mb-4">
-            <div class="col">
+        <div class="col">
                 <input class="form-control" type="file" name="file" accept="application/pdf" required />
             </div>
             <div class="col-auto">
@@ -56,6 +56,7 @@
         <button id="indexBtn" type="button" class="btn btn-outline-secondary btn-sm mb-3">
             Index Library
         </button>
+
 
 
         <!-- chat input -->
@@ -107,6 +108,8 @@
             <label class="form-check-label" for="myLibToggle">📚 Answer from My Library</label>
         </div>
 
+
+
         <!-- chat log -->
         <div id="log" class="border rounded p-3"
              style="height: 320px; overflow-y: auto; background:#f8f9fa;"></div>
@@ -115,6 +118,21 @@
 </div>
 
 <script th:inline="javascript">
+
+    async function sendTextToBot(msg) {
+        const useLib = document.getElementById('myLibToggle')?.checked;
+        const url  = useLib ? '/api/rag/ask' : '/api';
+        const bodyPayload = useLib ? { q: msg } : { message: msg };
+
+        const resp = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(bodyPayload)
+        });
+
+        return await resp.json();
+    }
+
     /*<![CDATA[*/
     const log  = document.getElementById('log');
     const AGENT_IMG_BASE = /*[[@{/images/}]]*/ '/images/';
@@ -222,6 +240,15 @@
         if (body.reply) {
             say('Bot', body.reply);
             if (ttsOn()) speak(body.reply);
+
+            if (Array.isArray(body.sources) && body.sources.length) {
+                const s = body.sources
+                    .map(src => `${src.file}${src.page != null ? ` p.${src.page}` : ''}`)
+                    .join(' • ');
+                say('Bot', `<small class="text-muted">Sources: ${s}</small>`);
+            }
+
+
         } else if (body.monthlyPayment) {
             const line = `Monthly payment: $${Number(body.monthlyPayment).toFixed(2)}`;
             say('Bot', line);
@@ -302,7 +329,7 @@
     // ---------- PDF TO CHAT CONTEXT: POST /api/pdf/upload-to-chat ----------
     document.getElementById('pdf-form').addEventListener('submit', async (e) => {
         e.preventDefault();
-        say('You', '[uploaded a Loan Estimate PDF]');
+        say('You', '[uploaded a PDF]');
         const fd = new FormData(e.target);
 
         const resp = await fetch(/*[[ @{/api/pdf/upload-to-chat} ]]*/, {
@@ -400,7 +427,11 @@
         }
         try {
             streamRef = await navigator.mediaDevices.getUserMedia({ audio: true });
-            const mime = MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : '';
+            // const mime = MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : '';
+            const mime = MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
+                ? 'audio/webm;codecs=opus'
+                : (MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : '');
+
             mediaRecorder = new MediaRecorder(streamRef, mime ? { mimeType: mime } : undefined);
             chunks = [];
 
@@ -419,18 +450,20 @@
 
                 const fd = new FormData();
                 fd.append('audio', blob, 'speech.webm');
-                fd.append('useLLM', useLLM && useLLM.checked ? 'true' : 'false');
+  //              fd.append('useLLM', useLLM && useLLM.checked ? 'true' : 'false');
 
                 say('You', '[voice message]');
                 micStatus.textContent = 'uploading…';
 
-                try {
-                    const resp = await fetch(/*[[ @{/api/voice/ask} ]]*/, { method: 'POST', body: fd });
-                    const body = await resp.json();
-                    if (body.transcript) showCaptions(body.transcript);
+       //         try {
+                    // const resp = await fetch(/*[[ @{/api/voice/ask} ]]*/, { method: 'POST', body: fd });
+                    // const body = await resp.json();
+                    // if (body.transcript) showCaptions(body.transcript);
+                    //
+                    // micStatus.textContent = 'idle';
 
-                    micStatus.textContent = 'idle';
 
+///////////////////////////////////////////////////////////////////
             //         // inside mediaRecorder.onstop → after `const body = await resp.json();`:
             //
             //         if (body.reply) {
@@ -522,7 +555,106 @@
                     //     say('Bot', body.reply);
                     //     if (ttsOn()) speak(body.reply);
                     // } else if (body.monthlyPayment) {
+////////////////////////////////////////////////////
+//                     if (body.reply) {
+//                         say('Bot', body.reply);
+//                         if (ttsOn()) speak(body.reply);
+//
+//                         if (Array.isArray(body.sources) && body.sources.length) {
+//                             const s = body.sources
+//                                 .map(src => `${src.file}${src.page != null ? ` p.${src.page}` : ''}`)
+//                                 .join(' • ');
+//                             say('Bot', `<small class="text-muted">Sources: ${s}</small>`);
+//                         }
+//                     } else if (body.monthlyPayment) {
+//
+//                         const line = `Monthly payment: $${Number(body.monthlyPayment).toFixed(2)}`;
+//                         say('Bot', line);
+//                         if (ttsOn()) speak(line);
+//                     } else if (body.percentile) {
+//                         const line = `Your offer is among the very best we see. Percentile ${Number(body.percentile).toFixed(0)}.`;
+//                         say('Bot', line);
+//                         if (ttsOn()) speak(line);
+//                     } else if (body.schedule) {
+//                         say('Bot', 'Amortization (first 5 years):');
+//                         if (ttsOn()) speak('Here is your amortization for the first five years.');
+//                         const first = (body.schedule || []).slice(0,5);
+//                         const table = document.createElement('table');
+//                         table.className = 'table table-sm';
+//                         table.innerHTML = `
+//       <thead><tr><th>Year</th><th>Principal</th><th>Interest</th><th>Balance</th></tr></thead>
+//       <tbody>
+//         ${first.map(r => `
+//           <tr>
+//             <td>${r.year}</td>
+//             <td>${r.principalPaid}</td>
+//             <td>${r.interestPaid}</td>
+//             <td>${r.remainingBalance}</td>
+//           </tr>`).join('')}
+//       </tbody>`;
+//                         log.appendChild(table);
+//                         log.scrollTop = log.scrollHeight;
+//                     } else if (body.refinance) {
+//                         const r = body.refinance;
+//                         const ui = `Old: $${r.oldPayment} → New: $${r.newPayment} | Save $${r.monthlySavings}/mo | Should refinance? ${r.shouldRefinance ? 'Yes' : 'No'}`;
+//                         say('Bot', ui);
+//                         if (ttsOn()) {
+//                             const line = `Old payment ${r.oldPayment} dollars. New payment ${r.newPayment} dollars. `
+//                                 + `Monthly savings ${r.monthlySavings} dollars. `
+//                                 + `Should refinance? ${r.shouldRefinance ? 'Yes' : 'No'}.`;
+//                             speak(line);
+//                         }
+//                     } else if (body.error) {
+//                         say('Bot', `<span class="text-danger">${body.error}</span>`);
+//                         if (ttsOn()) speak('There was an error processing your voice message.');
+//                     } else {
+//                         const dump = JSON.stringify(body, null, 2);
+//                         say('Bot', `<pre class="mb-0">${dump}</pre>`);
+//                         if (ttsOn()) speak('I have shown a structured response.');
+//                     }
+//
+//
+//                 } catch (e) {
+//                     micStatus.textContent = 'idle';
+//                     say('Bot', `<span class="text-danger">Voice request failed: ${String(e)}</span>`);
+//                 }
 
+                try {
+                    // 1) STT: send audio to backend
+         //           const sttResp = await fetch('/api/stt', { method: 'POST', body: fd });
+                    // const sttJson = await sttResp.json();
+                    //
+                    // const transcript = sttJson.text || '';
+
+
+                    const sttResp = await fetch('/api/stt', { method: 'POST', body: fd });
+
+                    if (!sttResp.ok) {
+                        const errText = await sttResp.text();
+                        say('Bot', `<span class="text-danger">STT failed: ${sttResp.status} ${errText}</span>`);
+                        return;
+                    }
+
+                    const sttJson = await sttResp.json();
+                    console.log('STT response:', sttJson);
+
+                    const transcript = (sttJson.text || '').trim();
+
+
+                    micStatus.textContent = 'idle';
+
+                    if (!transcript) {
+                        say('Bot', `<span class="text-danger">Didn’t catch that. Try again.</span>`);
+                        return;
+                    }
+
+                    showCaptions(transcript);
+                    say('You', transcript);
+
+                    // 2) Send transcript to your normal chat endpoint
+                    const body = await sendTextToBot(transcript);
+
+                    // 3) Render response (single block only)
                     if (body.reply) {
                         say('Bot', body.reply);
                         if (ttsOn()) speak(body.reply);
@@ -533,19 +665,22 @@
                                 .join(' • ');
                             say('Bot', `<small class="text-muted">Sources: ${s}</small>`);
                         }
-                    } else if (body.monthlyPayment) {
 
+                    } else if (body.monthlyPayment) {
                         const line = `Monthly payment: $${Number(body.monthlyPayment).toFixed(2)}`;
                         say('Bot', line);
                         if (ttsOn()) speak(line);
+
                     } else if (body.percentile) {
                         const line = `Your offer is among the very best we see. Percentile ${Number(body.percentile).toFixed(0)}.`;
                         say('Bot', line);
                         if (ttsOn()) speak(line);
+
                     } else if (body.schedule) {
                         say('Bot', 'Amortization (first 5 years):');
                         if (ttsOn()) speak('Here is your amortization for the first five years.');
-                        const first = (body.schedule || []).slice(0,5);
+
+                        const first = (body.schedule || []).slice(0, 5);
                         const table = document.createElement('table');
                         table.className = 'table table-sm';
                         table.innerHTML = `
@@ -561,30 +696,35 @@
       </tbody>`;
                         log.appendChild(table);
                         log.scrollTop = log.scrollHeight;
+
                     } else if (body.refinance) {
                         const r = body.refinance;
                         const ui = `Old: $${r.oldPayment} → New: $${r.newPayment} | Save $${r.monthlySavings}/mo | Should refinance? ${r.shouldRefinance ? 'Yes' : 'No'}`;
                         say('Bot', ui);
+
                         if (ttsOn()) {
-                            const line = `Old payment ${r.oldPayment} dollars. New payment ${r.newPayment} dollars. `
-                                + `Monthly savings ${r.monthlySavings} dollars. `
-                                + `Should refinance? ${r.shouldRefinance ? 'Yes' : 'No'}.`;
+                            const line = `Old payment ${r.oldPayment} dollars. New payment ${r.newPayment} dollars. Monthly savings ${r.monthlySavings} dollars. Should refinance? ${r.shouldRefinance ? 'Yes' : 'No'}.`;
                             speak(line);
                         }
+
                     } else if (body.error) {
                         say('Bot', `<span class="text-danger">${body.error}</span>`);
                         if (ttsOn()) speak('There was an error processing your voice message.');
+
                     } else {
                         const dump = JSON.stringify(body, null, 2);
                         say('Bot', `<pre class="mb-0">${dump}</pre>`);
                         if (ttsOn()) speak('I have shown a structured response.');
                     }
 
-
                 } catch (e) {
                     micStatus.textContent = 'idle';
                     say('Bot', `<span class="text-danger">Voice request failed: ${String(e)}</span>`);
                 }
+
+
+
+
                 cleanupStream();
             };
 
@@ -635,14 +775,39 @@
     }
 
     // Simple browser TTS (no backend setup needed)
-    function speak(text){
-        if (!text || !window.speechSynthesis) return;
-        const utter = new SpeechSynthesisUtterance(String(text).replace(/<[^>]+>/g,' '));
-        utter.lang = 'en-US';
-        utter.rate = 1;
-        utter.pitch = 1;
-        speechSynthesis.cancel();
-        speechSynthesis.speak(utter);
+    // function speak(text){
+    //     if (!text || !window.speechSynthesis) return;
+    //     const utter = new SpeechSynthesisUtterance(String(text).replace(/<[^>]+>/g,' '));
+    //     utter.lang = 'en-US';
+    //     utter.rate = 1;
+    //     utter.pitch = 1;
+    //     speechSynthesis.cancel();
+    //     speechSynthesis.speak(utter);
+    // }
+
+
+    async function speak(text) {
+        if (!text) return;
+
+        // remove HTML tags
+        const clean = String(text).replace(/<[^>]+>/g, ' ');
+
+        const res = await fetch('/api/tts', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text: clean, languageCode: 'en-US' })
+        });
+
+        if (!res.ok) {
+            console.error('TTS failed', await res.text());
+            return;
+        }
+
+        const buf = await res.arrayBuffer();
+        const url = URL.createObjectURL(new Blob([buf], { type: 'audio/mpeg' }));
+
+        const audio = new Audio(url);
+        await audio.play();
     }
 
 
@@ -664,6 +829,27 @@
             }
         });
     }
+
+
+
+
+    // (async function boot() {
+    //     try {
+    //         const r = await fetch('/api/rag/reindex', { method:'POST' }); // or '/api/rag/index'
+    //         const j = await r.json();
+    //         if (j.error) {
+    //             say('Bot', `<span class="text-danger">${j.error}</span>`);
+    //         } else {
+    //             const added = j.addedThisRun ?? j.indexedChunks ?? 0;
+    //             say('Bot', `Indexed (new this run): <b>${added}</b>`);
+    //             if (j.totalDocs !== undefined) {
+    //                 say('Bot', `Totals → docs: <b>${j.totalDocs}</b>, chunks: <b>${j.totalChunks}</b>, facts: <b>${j.totalFacts}</b>`);
+    //             }
+    //         }
+    //     } catch (e) {
+    //         say('Bot', `<span class="text-danger">Auto-index failed: ${String(e)}</span>`);
+    //     }
+    // })();
 
 
     /*]]>*/

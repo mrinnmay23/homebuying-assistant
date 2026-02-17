@@ -27,14 +27,45 @@ public class RagController {
         }
     }
 
+//    @PostMapping("/ask")
+//    public ResponseEntity<?> ask(@RequestBody Map<String,String> payload) {
+//        try {
+//            String q = payload.getOrDefault("q", "");
+//            String reply = ans.answerFromLibrary(q);
+//            return ResponseEntity.ok(Map.of("reply", reply));
+//        } catch (Exception e) {
+//            return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
+//        }
+//    }
+
+    // com.homebuying.assistant.controller.RagController
+//    @PostMapping("/ask")
+//    public ResponseEntity<?> ask(@RequestBody Map<String,String> payload) {
+//        try {
+//            String q = payload.getOrDefault("q", "");
+//            var ansRich = ans.answerFromLibraryRich(q);
+//            return ResponseEntity.ok(Map.of(
+//                    "reply", ansRich.reply(),
+//                    "sources", ansRich.sources()
+//            ));
+//        } catch (Exception e) {
+//            return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
+//        }
+//    }
+
     @PostMapping("/ask")
     public ResponseEntity<?> ask(@RequestBody Map<String,String> payload) {
         try {
             String q = payload.getOrDefault("q", "");
-            String reply = ans.answerFromLibrary(q);
-            return ResponseEntity.ok(Map.of("reply", reply));
+            var ansRich = ans.answerFromLibraryRich(q);   // uses your new rich method
+            return ResponseEntity.ok(Map.of(
+                    "reply",   ansRich.reply(),
+                    "sources", ansRich.sources()
+            ));
         } catch (Exception e) {
             return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
         }
     }
+
+
 }

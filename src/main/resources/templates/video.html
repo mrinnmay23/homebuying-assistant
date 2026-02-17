@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Video Tour Scanner</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.2/dist/cosmo/bootstrap.min.css" rel="stylesheet"/>
+
+    <style>
+        body{
+            background: linear-gradient(rgba(0,0,0,.35), rgba(0,0,0,.35)),
+            url('/images/background.jpg') no-repeat center center fixed;
+            background-size: cover;
+        }
+        .card-glass {
+            background: rgba(255,255,255,0.88);
+            border-radius: .75rem;
+            box-shadow: 0 6px 24px rgba(0,0,0,.08);
+        }
+        .small-muted { font-size:.95rem; color:#555; }
+        .chip {
+            display:inline-flex;
+            align-items:center;
+            gap:.35rem;
+            padding:.25rem .55rem;
+            border-radius: 999px;
+            background: rgba(13,110,253,.12);
+            border: 1px solid rgba(13,110,253,.18);
+            font-size: .9rem;
+            margin: .2rem .2rem 0 0;
+        }
+        .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+        pre { white-space: pre-wrap; }
+        .hidden { display:none; }
+    </style>
+</head>
+
+<body class="bg-light">
+
+<!-- Navbar (same style as homepage) -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-transparent mb-4">
+    <div class="container">
+        <a class="navbar-brand" th:href="@{/}">Homebuying Assistant</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div id="nav" class="collapse navbar-collapse">
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" th:href="@{/chat}">Chat</a>
+                <a class="nav-link" th:href="@{/quotes}">Quotes</a>
+                <a class="nav-link" th:href="@{/calculator}">Calculator</a>
+                <a class="nav-link" th:href="@{/score}">Offer Score</a>
+                <a class="nav-link" th:href="@{/amortization}">Amortization</a>
+                <a class="nav-link" th:href="@{/refinance}">Refinance</a>
+                <a class="nav-link" th:href="@{/upload-pdf}">PDF Upload</a>
+                <a class="nav-link" th:href="@{/ocr}">Image OCR</a>
+                <a class="nav-link active" th:href="@{/video}">Video Tour</a>
+                <a class="nav-link" th:href="@{/agent}">Agent Lookup</a>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<div class="container">
+
+    <div class="card card-glass">
+        <div class="card-body">
+            <h3 class="mb-1">🎥 Video Tour Scanner</h3>
+            <p class="small-muted mb-3">
+                Upload a short property tour video (keep it under 25MB for this MVP). We’ll detect labels like
+                <span class="mono">kitchen</span>, <span class="mono">stairs</span>, <span class="mono">balcony</span>
+                and show timestamps.
+            </p>
+
+            <form id="videoForm" class="row g-2 align-items-end">
+                <div class="col-md-8">
+                    <label class="form-label">Choose video</label>
+                    <input id="videoFile" class="form-control" type="file" accept="video/*" required>
+                    <div class="form-text small-muted">Tip: use a 10–30 sec clip for fastest results.</div>
+                </div>
+                <div class="col-md-4 d-grid">
+                    <button id="analyzeBtn" class="btn btn-primary" type="submit">Analyze Video</button>
+                    <button id="damageBtn" class="btn btn-outline-danger" type="button">Check Damage (Gemini)</button>
+                </div>
+            </form>
+
+            <hr class="my-4"/>
+
+            <!-- Status -->
+            <div id="status" class="alert alert-info hidden" role="alert"></div>
+
+            <!-- Basic file info -->
+            <div id="fileInfo" class="small-muted hidden"></div>
+
+            <div id="summaryBox" class="alert alert-secondary hidden mt-3"></div>
+
+            <div id="damageBox" class="alert alert-warning hidden mt-3"></div>
+
+
+
+            <!-- Labels chips -->
+            <div id="labelsSection" class="hidden">
+                <h5 class="mt-3 mb-2">Detected Labels</h5>
+                <div id="labelsChips"></div>
+            </div>
+
+            <div id="chaptersSection" class="hidden">
+                <h5 class="mt-4 mb-2">Chapters (shot changes)</h5>
+                <div class="table-responsive">
+                    <table class="table table-sm table-striped align-middle">
+                        <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Start</th>
+                            <th>End</th>
+                        </tr>
+                        </thead>
+                        <tbody id="chaptersBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+
+
+            <!-- Timeline table -->
+            <div id="timelineSection" class="hidden">
+                <h5 class="mt-4 mb-2">Timeline (segments)</h5>
+                <div class="table-responsive">
+                    <table class="table table-sm table-striped align-middle">
+                        <thead>
+                        <tr>
+                            <th>Label</th>
+                            <th>Start</th>
+                            <th>End</th>
+                            <th>Confidence</th>
+                        </tr>
+                        </thead>
+                        <tbody id="timelineBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Raw JSON (optional) -->
+            <div class="mt-4">
+                <button class="btn btn-outline-secondary btn-sm" type="button" id="toggleRawBtn">
+                    Show raw JSON
+                </button>
+                <pre id="rawJson" class="card card-glass p-3 mt-2 hidden"></pre>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    const form = document.getElementById('videoForm');
+    const fileInput = document.getElementById('videoFile');
+
+    const statusEl = document.getElementById('status');
+    const fileInfoEl = document.getElementById('fileInfo');
+
+    const labelsSection = document.getElementById('labelsSection');
+    const labelsChips = document.getElementById('labelsChips');
+
+    const chaptersSection = document.getElementById('chaptersSection');
+    const chaptersBody = document.getElementById('chaptersBody');
+
+    const timelineSection = document.getElementById('timelineSection');
+    const timelineBody = document.getElementById('timelineBody');
+
+    const damageBtn = document.getElementById("damageBtn");
+    const damageBox = document.getElementById("damageBox");
+
+
+    const analyzeBtn = document.getElementById('analyzeBtn');
+
+    const toggleRawBtn = document.getElementById('toggleRawBtn');
+    const rawJson = document.getElementById('rawJson');
+
+    function showStatus(msg, type = "info") {
+        statusEl.classList.remove("hidden", "alert-info", "alert-success", "alert-danger", "alert-warning");
+        statusEl.classList.add("alert-" + type);
+        statusEl.textContent = msg;
+    }
+
+    function hideStatus() {
+        statusEl.classList.add("hidden");
+    }
+
+    function fmtSec(s) {
+        if (s === null || s === undefined) return "-";
+        const total = Number(s);
+        const m = Math.floor(total / 60);
+        const sec = (total % 60).toFixed(1).padStart(4, '0');
+        return `${m}:${sec}`;
+    }
+
+    function resetUI() {
+        labelsChips.innerHTML = "";
+        timelineBody.innerHTML = "";
+        chaptersBody.innerHTML = "";
+        chaptersSection.classList.add("hidden");
+        damageBox.classList.add("hidden");
+        damageBox.textContent = "";
+        rawJson.textContent = "";
+        rawJson.classList.add("hidden");
+        labelsSection.classList.add("hidden");
+        timelineSection.classList.add("hidden");
+        fileInfoEl.classList.add("hidden");
+        document.getElementById("summaryBox").classList.add("hidden");
+        document.getElementById("summaryBox").textContent = "";
+
+        hideStatus();
+        toggleRawBtn.textContent = "Show raw JSON";
+    }
+
+    toggleRawBtn.addEventListener("click", () => {
+        const hidden = rawJson.classList.contains("hidden");
+        rawJson.classList.toggle("hidden");
+        toggleRawBtn.textContent = hidden ? "Hide raw JSON" : "Show raw JSON";
+    });
+
+    function guessRoom(labelNames) {
+        const s = labelNames.join(" ").toLowerCase();
+        const has = (...words) => words.some(w => s.includes(w));
+
+        if (has("kitchen", "cabinet", "cabinetry", "countertop", "oven", "stove", "microwave")) return "Kitchen";
+        if (has("bathroom", "toilet", "shower", "bathtub", "washbasin", "sink", "mirror")) return "Bathroom";
+        if (has("bedroom", "bed", "mattress", "wardrobe")) return "Bedroom";
+        if (has("living room", "sofa", "couch", "television", "tv")) return "Living Room";
+        if (has("stairs", "staircase", "handrail")) return "Stairs / Hallway";
+        if (has("balcony", "terrace", "patio", "garden", "yard")) return "Balcony / Outdoor";
+
+        return "General Room (not clear)";
+    }
+
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        resetUI();
+
+        const file = fileInput.files[0];
+        if (!file) return;
+
+        // Quick client-side limit (match your backend)
+        const max = 25 * 1024 * 1024;
+        if (file.size > max) {
+            showStatus("Video is too large for this MVP. Please upload a video under 25MB.", "warning");
+            return;
+        }
+
+        const fd = new FormData();
+        fd.append("file", file);
+
+        analyzeBtn.disabled = true;
+        showStatus("Analyzing... (this can take a little while)", "info");
+
+        try {
+            const resp = await fetch("/api/video/labels", {
+                method: "POST",
+                body: fd
+            });
+
+            if (!resp.ok) {
+                const txt = await resp.text();
+                throw new Error(txt || ("Request failed: " + resp.status));
+            }
+
+            const data = await resp.json();
+
+            // Show raw JSON
+            rawJson.textContent = JSON.stringify(data, null, 2);
+
+            const chapters = data.chapters || [];
+            if (chapters.length) {
+                chaptersSection.classList.remove("hidden");
+                chapters.forEach((c, idx) => {
+                    const tr = document.createElement("tr");
+                    tr.innerHTML = `
+          <td>${idx + 1}</td>
+          <td class="mono">${fmtSec(c.startSec)}</td>
+          <td class="mono">${fmtSec(c.endSec)}</td>
+        `;
+                    chaptersBody.appendChild(tr);
+                });
+            }
+
+            // File info (supports both response shapes: your DTO OR REST response)
+            const fileName = data.fileName || file.name;
+            const sizeBytes = data.sizeBytes || file.size;
+
+            fileInfoEl.classList.remove("hidden");
+            fileInfoEl.innerHTML = `<div class="mt-2"><b>File:</b> ${fileName} &nbsp; <b>Size:</b> ${(sizeBytes/1024/1024).toFixed(2)} MB</div>`;
+
+            // Parse labels from your DTO response:
+            // data.labels: [{ label, categories:[], segments:[{startSec,endSec,confidence}] }]
+            const labels = data.labels || [];
+
+
+             const MIN_CONF = 0.60;
+
+            const filtered = labels
+                .map(l => ({...l, segments: (l.segments || []).filter(s => (s.confidence ?? 0) >= MIN_CONF)}))
+                .filter(l => (l.segments || []).length > 0);
+
+
+
+            if (!filtered.length) {
+                showStatus("Done, but no strong labels were returned. Try a clearer short clip.", "warning");
+                analyzeBtn.disabled = false;
+                return;
+            }
+
+
+// ✅ ADD SUMMARY HERE (exactly here)
+            const labelNames = filtered.map(x => x.label);
+            const room = guessRoom(labelNames);
+
+            const top = labelNames.slice(0, 8);
+            const summaryBox = document.getElementById("summaryBox");
+            summaryBox.textContent = `Room guess: ${room}. Top tags: ${top.join(", ")}.`;
+            summaryBox.classList.remove("hidden");
+
+
+// Show chips (use filtered)
+            labelsSection.classList.remove("hidden");
+            filtered.forEach(l => {
+                const chip = document.createElement("span");
+                chip.className = "chip";
+                chip.textContent = l.label;
+                labelsChips.appendChild(chip);
+            });
+
+
+            // Timeline rows
+            timelineSection.classList.remove("hidden");
+            filtered.forEach(l => {
+                (l.segments || []).forEach(seg => {
+                    const tr = document.createElement("tr");
+                    tr.innerHTML = `
+                        <td>${l.label}</td>
+                        <td class="mono">${fmtSec(seg.startSec)}</td>
+                        <td class="mono">${fmtSec(seg.endSec)}</td>
+                        <td>${(seg.confidence ?? 0).toFixed ? (seg.confidence).toFixed(2) : seg.confidence}</td>
+                    `;
+                    timelineBody.appendChild(tr);
+                });
+            });
+
+            showStatus("Done ✅ Labels detected successfully.", "success");
+        } catch (err) {
+            console.error(err);
+            showStatus("Error: " + err.message, "danger");
+        } finally {
+            analyzeBtn.disabled = false;
+        }
+    });
+
+
+    damageBtn.addEventListener("click", async () => {
+        const file = fileInput.files[0];
+        if (!file) {
+            showStatus("Please choose a video first.", "warning");
+            return;
+        }
+
+        const fd = new FormData();
+        fd.append("file", file);
+
+        damageBtn.disabled = true;
+        showStatus("Checking damage with Gemini... (extracting frames)", "info");
+
+        try {
+            const resp = await fetch("/api/video/damage", { method: "POST", body: fd });
+            if (!resp.ok) throw new Error(await resp.text());
+            const data = await resp.json();
+
+            if (!data.ok) {
+                damageBox.textContent = data.message || "Damage check failed.";
+                damageBox.classList.remove("hidden");
+                showStatus("Damage check could not run.", "warning");
+                return;
+            }
+
+            damageBox.textContent = data.result;
+            damageBox.classList.remove("hidden");
+            showStatus("Damage check done ✅", "success");
+        } catch (e) {
+            showStatus("Error: " + e.message, "danger");
+        } finally {
+            damageBtn.disabled = false;
+        }
+    });
+
+
+</script>
+
+</body>
+</html>

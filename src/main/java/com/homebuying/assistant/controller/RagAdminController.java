@@ -48,11 +48,13 @@
 //}
 package com.homebuying.assistant.controller;
 
+import com.homebuying.assistant.repository.PropertyFactRepo;
 import com.homebuying.assistant.repository.RagChunkRepo;
 import com.homebuying.assistant.repository.RagDocumentRepo;
 import com.homebuying.assistant.service.RagService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Map;
@@ -64,21 +66,34 @@ public class RagAdminController {
     private final RagService ragService;
     private final RagChunkRepo chunkRepo;
     private final RagDocumentRepo docRepo;
+    private final PropertyFactRepo propertyFactRepo;
 
-    public RagAdminController(RagService ragService, RagChunkRepo chunkRepo, RagDocumentRepo docRepo) {
+    public RagAdminController(RagService ragService, RagChunkRepo chunkRepo, RagDocumentRepo docRepo,PropertyFactRepo propertyFactRepo) {
         this.ragService = ragService;
         this.chunkRepo = chunkRepo;
         this.docRepo = docRepo;
+        this.propertyFactRepo = propertyFactRepo;
     }
 
     @PostMapping("/reindex")
     public ResponseEntity<?> reindex(@RequestParam(value="force", defaultValue="false") boolean force) throws Exception {
         if (force) {
+            propertyFactRepo.deleteAllInBatch();
             chunkRepo.deleteAll();
             docRepo.deleteAll();
         }
-        int n = ragService.indexAll();
-        return ResponseEntity.ok(Map.of("indexedChunks", n, "forced", force));
+        //int n = ragService.indexAll();
+
+        int added = ragService.indexAll();
+
+      //  return ResponseEntity.ok(Map.of("indexedChunks", n, "forced", force));
+        return ResponseEntity.ok(Map.of(
+                "addedThisRun", added,                    // NEW: only new chunks
+                "forced", force,
+                "totalDocs", docRepo.count(),             // NEW: totals in DB
+                "totalChunks", chunkRepo.count(),
+                "totalFacts", propertyFactRepo.count()    // if you have facts
+        ));
     }
 
     // ✅ FIXED: this is now /api/rag/hits
@@ -93,4 +108,14 @@ public class RagAdminController {
         )).toList();
         return ResponseEntity.ok(out);
     }
+
+
+    @PostMapping("/upload")
+    public ResponseEntity<?> upload(@RequestPart("file") MultipartFile file) throws Exception {
+        if (file.isEmpty()) return ResponseEntity.badRequest().body(Map.of("error","empty file"));
+        ragService.saveToCorpus(file.getOriginalFilename(), file.getBytes());
+        int n = ragService.indexNewOnly();
+        return ResponseEntity.ok(Map.of("saved", file.getOriginalFilename(), "indexedChunks", n));
+    }
+
 }

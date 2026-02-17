@@ -9,19 +9,53 @@
             href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.2/dist/cosmo/bootstrap.min.css"
             rel="stylesheet"
     />
+<!--    <style>-->
+<!--        body {-->
+<!--            background: url('/images/background.jpg') no-repeat center center fixed;-->
+<!--            background-size: cover;-->
+<!--        }-->
+<!--        .card-transparent {-->
+<!--            background: rgba(255,255,255,0.85);-->
+<!--            border-radius: .5rem;-->
+<!--            padding: 2rem;-->
+<!--            max-width: 600px;-->
+<!--            margin: 2rem auto;-->
+<!--        }-->
+<!--    </style>-->
+
     <style>
-        body {
+        body{
             background: url('/images/background.jpg') no-repeat center center fixed;
             background-size: cover;
         }
-        .card-transparent {
-            background: rgba(255,255,255,0.85);
-            border-radius: .5rem;
+        /* wider card; center; padding kept */
+        .card-transparent{
+            background: rgba(255,255,255,0.92);
+            border-radius: .75rem;
             padding: 2rem;
-            max-width: 600px;
+            /* wider than 600px so 3 columns fit */
+            max-width: 1200px;       /* was 600px */
             margin: 2rem auto;
+            box-shadow: 0 10px 30px rgba(0,0,0,.12);
         }
+
+        /* keep result tables inside the card with their own scrollbars */
+        #result{
+            max-height: 60vh;        /* prevent pushing outside the card */
+            overflow: auto;
+        }
+        #result .card{             /* cards inside result should be opaque */
+            background: rgba(255,255,255,0.98);
+            border: 1px solid rgba(0,0,0,.05);
+        }
+        .table-fixed{
+            table-layout: fixed;
+            word-break: break-word;
+        }
+        .text-nowrap{ white-space: nowrap; }
     </style>
+
+
 </head>
 <body class="bg-light">
 
@@ -55,6 +89,29 @@
                     class="form-control mb-3"
                     required
             />
+
+            <!-- Baseline mode -->
+            <div class="mb-2 text-start">
+                <label class="form-label mb-1">Baseline engine</label><br>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="baseline" id="bOld" value="old" checked>
+                    <label class="form-check-label" for="bOld">Old DocAI (/api/pdf/upload)</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="baseline" id="bGem" value="gemini">
+                    <label class="form-check-label" for="bGem">Gemini (/api/pdf/upload-to-chat)</label>
+                </div>
+            </div>
+
+            <!-- Compare toggle -->
+            <div class="form-check form-switch mb-3 text-start">
+                <input class="form-check-input" type="checkbox" id="compareToggle">
+                <label class="form-check-label" for="compareToggle">
+                    Compare with Custom Loan Extractor (/api/docai/loan/extract)
+                </label>
+            </div>
+
+
             <button type="submit" class="btn btn-primary">Upload</button>
         </form>
 
@@ -65,44 +122,373 @@
 <script
         src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
 ></script>
+<!--<script th:inline="javascript">-->
+<!--    /*<![CDATA[*/-->
+<!--    const form   = document.getElementById('pdf-form'),-->
+<!--        result = document.getElementById('result');-->
+
+<!--    form.addEventListener('submit', async e => {-->
+<!--        e.preventDefault();-->
+<!--        result.innerHTML = '<em>Uploading…</em>';-->
+
+<!--        const fd  = new FormData(form),-->
+<!--            res = await fetch('/api/pdf/upload', {-->
+<!--                method: 'POST',-->
+<!--                body: fd-->
+<!--            }),-->
+<!--            json = await res.json();-->
+
+<!--        if (json.error) {-->
+<!--            result.innerHTML = `<div class="alert alert-danger">${json.error}</div>`;-->
+<!--            return;-->
+<!--        }-->
+
+<!--        // Render fields as a table-->
+<!--        const fields = json.fields || {},-->
+<!--            rows   = Object.entries(fields)-->
+<!--                .map(([k,v]) =>-->
+<!--                    `<tr><th scope="row">${k}</th><td>${v}</td></tr>`)-->
+<!--                .join('');-->
+
+<!--        result.innerHTML = `-->
+<!--        <h4>Extracted Fields:</h4>-->
+<!--        <div class="table-responsive">-->
+<!--          <table class="table table-bordered">-->
+<!--            <tbody>${rows}</tbody>-->
+<!--          </table>-->
+<!--        </div>-->
+<!--      `;-->
+<!--    });-->
+<!--    /*]]>*/-->
+<!--</script>-->
+
 <script th:inline="javascript">
     /*<![CDATA[*/
-    const form   = document.getElementById('pdf-form'),
-        result = document.getElementById('result');
+    const form   = document.getElementById('pdf-form');
+    const result = document.getElementById('result');
 
-    form.addEventListener('submit', async e => {
+    // const EP = {
+    //     old:    '/api/pdf/upload',
+    //     gemini: '/api/pdf/upload-to-chat',
+    //     custom: '/api/pdf/loan-extract'   // <-- change to /api/pdf/loan-extract
+    // };
+
+    const EP = {
+        old: '/api/pdf/upload', gemini: '/api/pdf/upload-to-chat', custom: '/api/pdf/loan-extract',
+        compareAll: '/api/pdf/compare-all', saveFinal: '/api/pdf/save-final', ask: '/api/pdf/ask', pdf: '/api/pdf/summary.pdf'
+    };
+
+
+
+    function card(title, inner){
+        return `<div class="card mb-3">
+    <div class="card-header fw-semibold">${title}</div>
+    <div class="card-body">${inner}</div>
+  </div>`;
+    }
+    function tableKV(map){
+        const rows = Object.entries(map || {}).map(([k,v]) =>
+            `<tr><th scope="row" class="text-nowrap">${k}</th><td>${v ?? ''}</td></tr>`).join('');
+        return `<div class="table-responsive"><table class="table table-sm table-bordered table-fixed mb-0">
+    <tbody>${rows || '<tr><td colspan="2" class="text-muted">No fields</td></tr>'}</tbody></table></div>`;
+    }
+    function diffTable(a,b,labelA,labelB){
+        const keys = Array.from(new Set([...(a?Object.keys(a):[]), ...(b?Object.keys(b):[])])).sort();
+        const rows = keys.map(k=>{
+            const va = (a && a[k]) ?? '', vb = (b && b[k]) ?? '';
+            const same = String(va).trim() === String(vb).trim();
+            return `<tr class="${same?'':'table-warning'}"><td class="text-nowrap">${k}</td><td>${va}</td><td>${vb}</td></tr>`;
+        }).join('');
+        return `<div class="table-responsive"><table class="table table-sm mb-0">
+    <thead><tr><th>Field</th><th>${labelA}</th><th>${labelB}</th></tr></thead>
+    <tbody>${rows || '<tr><td colspan="3" class="text-muted">No overlap</td></tr>'}</tbody></table></div>`;
+    }
+
+    async function postForm(url, fd){
+        // Always POST; never navigate; return parsed JSON or throw
+        const r = await fetch(url, { method: 'POST', body: fd });
+        const j = await r.json().catch(()=>({ error: `Bad JSON from ${url}` }));
+        if (j && j.error) throw new Error(j.error);
+        return j;
+    }
+
+    async function callOld(fd){
+        const j = await postForm(EP.old, fd);
+        return j.fields || {};
+    }
+    async function callCustom(fd){
+        const j = await postForm(EP.custom, fd);
+        return j.fields || {};
+    }
+    async function callGemini(fd){
+        const j = await postForm(EP.gemini, fd);
+        const n = j.normalized || {};
+        return {
+            loan_amount:             n.principal,
+            interest_rate:           n.rate,
+            loan_term_years:         n.termYears,
+            estimated_closing_costs: n.fees
+        };
+    }
+
+    // Stop any accidental link-like navigation from labels (extra safety)
+    document.querySelectorAll('label[for="compareToggle"]').forEach(l =>
+        l.addEventListener('click', (e)=>{ e.preventDefault(); document.getElementById('compareToggle').checked = !document.getElementById('compareToggle').checked; })
+    );
+
+    form.addEventListener('submit', async (e)=>{
         e.preventDefault();
         result.innerHTML = '<em>Uploading…</em>';
 
-        const fd  = new FormData(form),
-            res = await fetch('/api/pdf/upload', {
-                method: 'POST',
-                body: fd
-            }),
-            json = await res.json();
-
-        if (json.error) {
-            result.innerHTML = `<div class="alert alert-danger">${json.error}</div>`;
+        const fd = new FormData(form);
+        // Ensure a file exists (prevents empty POST)
+        const file = fd.get('file');
+        if (!file || (file instanceof File && file.size === 0)){
+            result.innerHTML = `<div class="alert alert-warning">Please pick a PDF.</div>`;
             return;
         }
 
-        // Render fields as a table
-        const fields = json.fields || {},
-            rows   = Object.entries(fields)
-                .map(([k,v]) =>
-                    `<tr><th scope="row">${k}</th><td>${v}</td></tr>`)
-                .join('');
+        const baseline = (fd.get('baseline') || 'old');
+        const compare  = document.getElementById('compareToggle').checked;
 
-        result.innerHTML = `
-        <h4>Extracted Fields:</h4>
-        <div class="table-responsive">
-          <table class="table table-bordered">
-            <tbody>${rows}</tbody>
-          </table>
-        </div>
-      `;
+        try{
+            if (compare){
+                // Compare baseline vs custom in parallel
+      //           const [baseFields, customFields] = await Promise.all([
+      //               (baseline === 'gemini') ? callGemini(fd) : callOld(fd),
+      //               callCustom(fd)
+      //           ]);
+      //
+      //           const colA = card(
+      //               (baseline === 'gemini') ? 'Baseline: Gemini (normalized → mapped)'
+      //                   : 'Baseline: Old DocAI (prebuilt)',
+      //               tableKV(baseFields)
+      //           );
+      //           const mid  = card('Diff', diffTable(baseFields, customFields,
+      //               (baseline === 'gemini') ? 'Gemini' : 'Old DocAI', 'Custom'));
+      //           const colB = card('Custom Loan Extractor', tableKV(customFields));
+      //
+      //           result.innerHTML = `<div class="row g-3">
+      //   <div class="col-12 col-lg-4">${colA}</div>
+      //   <div class="col-12 col-lg-4">${mid}</div>
+      //   <div class="col-12 col-lg-4">${colB}</div>
+      // </div>`;
+
+
+                const fd = new FormData(form);
+                const j = await postForm(EP.compareAll, fd);
+
+                const old = j.old || {};
+                const custom = j.custom || {};
+                const gemini = j.gemini || {};
+                const conflicts = j.conflicts || [];
+
+                result.innerHTML = `
+  <div class="row g-3">
+    <div class="col-12 col-lg-4">${card('Old DocAI (normalized)', tableKV(old))}</div>
+    <div class="col-12 col-lg-4">${card('Custom Extractor', tableKV(custom))}</div>
+    <div class="col-12 col-lg-4">${card('Gemini (normalized)', tableKV(gemini))}</div>
+  </div>
+
+  ${card('Resolve Conflicts', renderConflicts(conflicts))}
+  ${card('Ask about this PDF', renderAskBox())}
+  ${card('Final Summary', `<div id="finalBox" class="text-muted">Save final values to enable export.</div>
+     <a class="btn btn-outline-primary mt-2" href="${EP.pdf}" target="_blank">Download PDF summary</a>`)}
+`;
+
+                wireAfterRender(conflicts, old, custom, gemini);
+
+
+
+
+            }else{
+                const fields = (baseline === 'gemini') ? await callGemini(fd) : await callOld(fd);
+                result.innerHTML = card(
+                    (baseline === 'gemini') ? 'Gemini (normalized → mapped)' : 'Old DocAI (prebuilt)',
+                    tableKV(fields)
+                );
+            }
+        }catch(err){
+            result.innerHTML = `<div class="alert alert-danger">${String(err.message || err)}</div>`;
+        }
     });
+
+
+
+    function renderConflicts(conflicts){
+        if (!conflicts.length) {
+            return `
+      <div class="text-success mb-2">No conflicts found 🎉</div>
+      <button class="btn btn-success" type="button" id="saveFinalBtn">
+        Save final values
+      </button>
+    `;
+        }
+
+        const rows = conflicts.map((c, idx) => `
+    <tr data-key="${escapeHtml(c.key)}" data-idx="${idx}">
+      <td class="text-nowrap">${escapeHtml(c.key)}</td>
+
+      <td>
+        <div class="form-check">
+          <input class="form-check-input" type="radio" name="pick_${idx}" value="${escapeHtml(c.old||'')}" checked>
+          <label class="form-check-label">${escapeHtml(c.old||'')}</label>
+        </div>
+      </td>
+
+      <td>
+        <div class="form-check">
+          <input class="form-check-input" type="radio" name="pick_${idx}" value="${escapeHtml(c.custom||'')}">
+          <label class="form-check-label">${escapeHtml(c.custom||'')}</label>
+        </div>
+      </td>
+
+      <td>
+        <div class="form-check">
+          <input class="form-check-input" type="radio" name="pick_${idx}" value="${escapeHtml(c.gemini||'')}">
+          <label class="form-check-label">${escapeHtml(c.gemini||'')}</label>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+
+        return `
+    <div class="table-responsive">
+      <table class="table table-sm">
+        <thead><tr><th>Field</th><th>Old</th><th>Custom</th><th>Gemini</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>
+    <button class="btn btn-success" type="button" id="saveFinalBtn">Save final values</button>
+  `;
+    }
+
+    function renderAskBox(){
+        return `
+    <div class="d-flex gap-2 mb-2">
+      <input class="form-control" id="qaInput" placeholder="Ask: cash to close? APR? any red flags?" />
+      <button class="btn btn-primary" id="qaBtn" type="button">Ask</button>
+    </div>
+
+    <div class="d-flex flex-wrap gap-2 mb-2">
+      ${quickBtn("What is my monthly payment?")}
+      ${quickBtn("How much cash do I need to close?")}
+      ${quickBtn("What is my APR and interest rate?")}
+      ${quickBtn("Is there any balloon payment?")}
+      ${quickBtn("Summarize the loan in 5 bullets")}
+    </div>
+
+    <div id="qaAnswer" class="alert alert-secondary d-none mb-0"></div>
+  `;
+    }
+
+    function quickBtn(text){
+        return `<button type="button" class="btn btn-outline-secondary btn-sm qaQuick" data-q="${escapeHtml(text)}">${escapeHtml(text)}</button>`;
+    }
+
+    function escapeHtml(s){
+        return String(s ?? '').replace(/[&<>"']/g, m => ({
+            '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+        }[m]));
+    }
+
+    // ✅ THIS is the “wire the buttons after rendering” function
+    // ✅ Wire buttons after rendering (SAVE + ASK)
+    function wireAfterRender(conflicts, old, custom, gemini){
+
+        // ---------- 1) Save Final ----------
+        const saveBtn = document.getElementById('saveFinalBtn');
+        if (saveBtn) {
+            saveBtn.addEventListener('click', async () => {
+                saveBtn.disabled = true;
+                saveBtn.textContent = 'Saving…';
+
+                try {
+                    // merged final: prefer custom -> gemini -> old
+                    const final = {};
+                    const keys = new Set([
+                        ...Object.keys(old || {}),
+                        ...Object.keys(custom || {}),
+                        ...Object.keys(gemini || {})
+                    ]);
+
+                    keys.forEach(k => {
+                        final[k] = (custom && custom[k]) || (gemini && gemini[k]) || (old && old[k]) || '';
+                    });
+
+                    // override conflicting keys via radio picks
+                    (conflicts || []).forEach((c, idx) => {
+                        const picked = document.querySelector(`input[name="pick_${idx}"]:checked`);
+                        final[c.key] = picked ? picked.value : (final[c.key] || '');
+                    });
+
+                    const r = await fetch(EP.saveFinal, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ final })
+                    });
+
+                    const j = await r.json().catch(()=>({}));
+                    if (!r.ok || j.error) throw new Error(j.error || ('Save failed: ' + r.status));
+
+                    const box = document.getElementById('finalBox');
+                    if (box) box.innerHTML = `<div class="text-success">Saved ✅ You can export now.</div>`;
+                } catch (e) {
+                    alert(String(e.message || e));
+                } finally {
+                    saveBtn.disabled = false;
+                    saveBtn.textContent = 'Save final values';
+                }
+            });
+        }
+
+        // ---------- 2) Ask Box ----------
+        const qaBtn = document.getElementById('qaBtn');
+        const qaInput = document.getElementById('qaInput');
+        const qaAnswer = document.getElementById('qaAnswer');
+
+        async function doAsk(q){
+            if (!q) return;
+
+            if (qaAnswer) { qaAnswer.classList.add('d-none'); qaAnswer.textContent = ''; }
+
+            const r = await fetch(EP.ask, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ question: q })
+            });
+
+            const j = await r.json().catch(()=>({}));
+            if (!r.ok || j.error) throw new Error(j.error || ('Ask failed: ' + r.status));
+
+            if (qaAnswer) {
+                qaAnswer.textContent = j.answer || '(no answer)';
+                qaAnswer.classList.remove('d-none');
+            }
+        }
+
+        if (qaBtn) {
+            qaBtn.addEventListener('click', async () => {
+                try { await doAsk((qaInput?.value || '').trim()); }
+                catch(e){ alert(String(e.message || e)); }
+            });
+        }
+
+        document.querySelectorAll('.qaQuick').forEach(btn => {
+            btn.addEventListener('click', async () => {
+                const q = btn.getAttribute('data-q') || '';
+                if (qaInput) qaInput.value = q;
+                try { await doAsk(q); }
+                catch(e){ alert(String(e.message || e)); }
+            });
+        });
+    }
+
+
+
     /*]]>*/
 </script>
+
+
 </body>
 </html>

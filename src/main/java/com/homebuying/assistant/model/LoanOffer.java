@@ -21,6 +21,12 @@ public class LoanOffer {
     java.sql.Timestamp updatedAt;
     // getters/setters
 
+    // in LoanOffer.java
+    private Double discountPoints; // e.g., 1.000 means 1% of loan amount
+
+    public Double getDiscountPoints() { return discountPoints; }
+    public void setDiscountPoints(Double discountPoints) { this.discountPoints = discountPoints; }
+
 
     public Long getId() {
         return id;

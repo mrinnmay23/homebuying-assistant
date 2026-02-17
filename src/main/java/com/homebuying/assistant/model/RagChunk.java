@@ -21,4 +21,7 @@ public class RagChunk {
     @Lob
     @Column(name="embedding_json", columnDefinition = "LONGTEXT")
     public String embeddingJson; // store vector as JSON string (double[])
+
+    public Integer pageStart;   // 1-based page number
+    public Integer pageEnd;
 }

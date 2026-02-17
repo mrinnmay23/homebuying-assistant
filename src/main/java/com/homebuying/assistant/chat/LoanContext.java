@@ -86,21 +86,78 @@ public class LoanContext implements Serializable {
             this.termYears = parsedTerm;
         }
 
+//        // fees → fees (Double) — allow % or $
+//        String f = fields.get("fees");
+//        if (f != null && !f.isBlank()) {
+//            Double feeMoney = parseMoney(f);
+//            if (feeMoney == null) {
+//                // maybe it was a percent; convert % of principal if we have principal
+//                Double feePct = parsePercent(f);
+//                if (feePct != null && this.principal != null && this.principal > 0) {
+//                    feeMoney = this.principal * (feePct / 100.0);
+//                }
+//            }
+//            if (feeMoney != null && feeMoney >= 0 && feeMoney <= 200_000) {
+//                this.fees = feeMoney;
+//            }
+//        }
+
+        // fees → fees (Double) — IMPORTANT: clear old fees if blank/missing
         // fees → fees (Double) — allow % or $
-        String f = fields.get("fees");
-        if (f != null && !f.isBlank()) {
-            Double feeMoney = parseMoney(f);
-            if (feeMoney == null) {
-                // maybe it was a percent; convert % of principal if we have principal
-                Double feePct = parsePercent(f);
-                if (feePct != null && this.principal != null && this.principal > 0) {
-                    feeMoney = this.principal * (feePct / 100.0);
+//        if (fields.containsKey("fees")) {
+//            String f = fields.get("fees");
+//
+//            // IMPORTANT: clear old value if new PDF didn't give fees
+//            if (f == null || f.isBlank()) {
+//                this.fees = null;
+//            } else {
+//                Double feeMoney = parseMoney(f);
+//
+//                // only if Gemini returned a percent like "2%" (rare)
+//                if (feeMoney == null) {
+//                    Double feePct = parsePercent(f);
+//                    if (feePct != null && this.principal != null && this.principal > 0) {
+//                        feeMoney = this.principal * (feePct / 100.0);
+//                    }
+//                }
+//
+//                if (feeMoney != null && feeMoney >= 0 && feeMoney <= 200_000) {
+//                    this.fees = feeMoney;
+//                } else {
+//                    this.fees = null; // optional safety
+//                }
+//            }
+//        }
+
+        // fees → fees (Double) — allow % or $
+        if (fields.containsKey("fees")) {
+            String f = fields.get("fees");
+
+            // IMPORTANT: clear old value if empty
+            if (f == null || f.isBlank()) {
+                this.fees = null;
+            } else {
+                Double feeMoney = parseMoney(f);
+
+                // if Gemini gave percent, convert % of principal
+                if (feeMoney == null) {
+                    Double feePct = parsePercent(f);
+                    if (feePct != null && this.principal != null && this.principal > 0) {
+                        feeMoney = this.principal * (feePct / 100.0);
+                    }
+                }
+
+                if (feeMoney != null && feeMoney >= 0 && feeMoney <= 200_000) {
+                    this.fees = feeMoney;
                 }
             }
-            if (feeMoney != null && feeMoney >= 0 && feeMoney <= 200_000) {
-                this.fees = feeMoney;
-            }
+        } else {
+            // if the new extraction didn't even return "fees", clear it too (recommended per upload)
+            this.fees = null;
         }
+
+
+
     }
 
     // ---------- helpers ----------

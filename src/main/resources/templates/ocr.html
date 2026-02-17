@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Image OCR</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.2/dist/cosmo/bootstrap.min.css" rel="stylesheet"/>
+
+    <style>
+        body{
+            background: linear-gradient(rgba(0,0,0,.35), rgba(0,0,0,.35)),
+            url('/images/background.jpg') no-repeat center center fixed;
+            background-size: cover;
+        }
+        .card-glass {
+            background: rgba(255,255,255,0.88);
+            border-radius: .75rem;
+            box-shadow: 0 6px 24px rgba(0,0,0,.08);
+        }
+        .small-muted { font-size:.95rem; color:#555; }
+        pre { white-space: pre-wrap; }
+    </style>
+</head>
+
+<body class="bg-light">
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-transparent mb-4">
+    <div class="container">
+        <a class="navbar-brand" th:href="@{/}">Homebuying Assistant</a>
+        <div class="navbar-nav ms-auto">
+            <a class="nav-link" th:href="@{/chat}">Chat</a>
+            <a class="nav-link" th:href="@{/quotes}">Quotes</a>
+            <a class="nav-link" th:href="@{/calculator}">Calculator</a>
+            <a class="nav-link" th:href="@{/score}">Offer Score</a>
+            <a class="nav-link" th:href="@{/amortization}">Amortization</a>
+            <a class="nav-link" th:href="@{/refinance}">Refinance</a>
+            <a class="nav-link" th:href="@{/upload-pdf}">PDF Upload</a>
+            <a class="nav-link active" th:href="@{/ocr}">Image OCR</a>
+            <a class="nav-link" th:href="@{/agent}">Agent Lookup</a>
+        </div>
+    </div>
+</nav>
+
+<div class="container">
+
+    <a th:href="@{/}" class="btn btn-outline-light mb-3">← Home</a>
+
+    <div class="card card-glass p-4 mb-4">
+        <h2 class="mb-2">Image OCR</h2>
+        <p class="small-muted mb-3">
+            Upload a screenshot/photo of a Loan Estimate. We’ll extract OCR text + try to fill (amount, rate, term, fees).
+            You can edit before downloading as PDF.
+        </p>
+
+        <form id="ocrForm" class="row g-2 align-items-center">
+            <div class="col-md-6">
+                <input class="form-control" type="file" id="file" accept="image/*" required>
+            </div>
+            <div class="col-md-auto">
+                <button class="btn btn-primary" type="submit">Run OCR</button>
+            </div>
+            <div class="col-md-auto">
+                <span id="status" class="small-muted"></span>
+            </div>
+        </form>
+    </div>
+
+    <div class="row g-4">
+        <!-- Extracted values -->
+        <div class="col-lg-6">
+            <div class="card card-glass p-4 h-100">
+                <h5 class="mb-3">✅ Extracted values (editable)</h5>
+
+                <div class="mb-2">
+                    <label class="form-label">Loan amount</label>
+                    <input class="form-control" id="amount" placeholder="e.g. 171000">
+                </div>
+
+                <div class="mb-2">
+                    <label class="form-label">Interest rate (%)</label>
+                    <input class="form-control" id="rate" placeholder="e.g. 4.25">
+                </div>
+
+                <div class="mb-2">
+                    <label class="form-label">Term (years)</label>
+                    <input class="form-control" id="term" placeholder="e.g. 30">
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Fees / Closing costs ($)</label>
+                    <input class="form-control" id="fees" placeholder="e.g. 5099">
+                </div>
+
+                <div class="d-flex gap-2 flex-wrap">
+                    <button class="btn btn-outline-secondary" id="fillBtn" type="button" disabled>Re-fill from OCR text</button>
+                    <button class="btn btn-warning" id="useCalcBtn" type="button" disabled>
+                        Use in Calculator
+                    </button>
+
+                    <button class="btn btn-success" id="downloadBtn" type="button" disabled>Download as PDF</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- OCR preview -->
+        <div class="col-lg-6">
+            <div class="card card-glass p-4 h-100">
+                <h5 class="mb-2">👀 What I read (OCR preview)</h5>
+                <p class="small-muted">First ~500 characters. You can expand full text.</p>
+
+                <pre id="preview" class="border rounded p-2 bg-white" style="min-height:140px;"></pre>
+
+                <button class="btn btn-sm btn-outline-primary mt-2" id="toggleFull" type="button" disabled>
+                    Show full OCR text
+                </button>
+
+                <pre id="fullText" class="border rounded p-2 bg-white mt-2 d-none" style="max-height:300px; overflow:auto;"></pre>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let lastFields = {};
+    function fillInputsFromFields(fields){
+        if(!fields) return;
+        if(fields.loanAmount) amountEl.value = fields.loanAmount;
+        if(fields.interestRate) rateEl.value = fields.interestRate;
+        if(fields.termYears) termEl.value = fields.termYears;
+        if(fields.fees) feesEl.value = fields.fees;
+    }
+
+
+    let lastOcrText = "";
+
+    const statusEl = document.getElementById("status");
+    const previewEl = document.getElementById("preview");
+    const fullEl = document.getElementById("fullText");
+
+    const fillBtn = document.getElementById("fillBtn");
+    const downloadBtn = document.getElementById("downloadBtn");
+    const toggleFullBtn = document.getElementById("toggleFull");
+    const useCalcBtn = document.getElementById("useCalcBtn");
+
+
+    const amountEl = document.getElementById("amount");
+    const rateEl = document.getElementById("rate");
+    const termEl = document.getElementById("term");
+    const feesEl = document.getElementById("fees");
+
+    function cleanMoney(s){
+        if(!s) return "";
+        return s.replace(/[^0-9.]/g,"");
+    }
+
+    // very simple heuristics for Loan Estimate text
+    function extractFieldsFromText(text){
+        const t = (text || "").replace(/\s+/g, " ");
+
+        // Amount: look near "Loan Amount" or "Amount Financed"
+        let amount = "";
+        const amtMatch = t.match(/(Loan Amount|Amount Financed)[^$]{0,40}\$?\s*([0-9]{1,3}(?:,[0-9]{3})+|[0-9]+)/i);
+        if (amtMatch) amount = cleanMoney(amtMatch[2]);
+
+        // Rate: look near "Interest Rate"
+        let rate = "";
+        const rateMatch = t.match(/Interest Rate[^0-9]{0,20}([0-9]{1,2}\.[0-9]{1,3}|[0-9]{1,2})\s*%/i);
+        if (rateMatch) rate = rateMatch[1];
+
+        // Term: look near "Loan Term"
+        let term = "";
+        const termMatch = t.match(/Loan Term[^0-9]{0,40}([0-9]{1,2})\s*(years|yrs|year)/i);
+        if (termMatch) term = termMatch[1];
+
+        // Fees: look near "Estimated Closing Costs" or "Closing Costs"
+        let fees = "";
+        const feeMatch = t.match(/(Estimated Closing Costs|Closing Costs)[^$]{0,40}\$?\s*([0-9]{1,3}(?:,[0-9]{3})+|[0-9]+)/i);
+        if (feeMatch) fees = cleanMoney(feeMatch[2]);
+
+        return { amount, rate, term, fees };
+    }
+
+    function fillInputsFromText(text){
+        const f = extractFieldsFromText(text);
+        if (f.amount) amountEl.value = f.amount;
+        if (f.rate)   rateEl.value = f.rate;
+        if (f.term)   termEl.value = f.term;
+        if (f.fees)   feesEl.value = f.fees;
+    }
+
+    document.getElementById("ocrForm").addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const file = document.getElementById("file").files[0];
+        if (!file) return;
+
+        statusEl.textContent = "Running OCR...";
+        previewEl.textContent = "";
+        fullEl.textContent = "";
+        lastOcrText = "";
+
+        fillBtn.disabled = true;
+        downloadBtn.disabled = true;
+        toggleFullBtn.disabled = true;
+        fullEl.classList.add("d-none");
+        toggleFullBtn.textContent = "Show full OCR text";
+
+        const fd = new FormData();
+        fd.append("file", file);
+
+        try {
+            const res = await fetch("/api/ocr/upload", { method: "POST", body: fd });
+            const data = await res.json();
+
+            if (!res.ok) throw new Error(data.error || "OCR failed");
+
+            lastOcrText = data.text || "";
+            previewEl.textContent = data.preview || "";
+            fullEl.textContent = lastOcrText;
+
+            // fill values
+            lastFields = data.fields || {};
+            fillInputsFromFields(lastFields);   // ✅ uses backend extracted values
+
+
+            fillBtn.disabled = false;
+            downloadBtn.disabled = false;
+            toggleFullBtn.disabled = false;
+            useCalcBtn.disabled = false;
+
+
+            statusEl.textContent = "Done ✅";
+        } catch (err) {
+            statusEl.textContent = "Error: " + err.message;
+        }
+    });
+
+    fillBtn.addEventListener("click", () => {
+        fillInputsFromFields(lastFields); // ✅ refill from backend fields
+    });
+
+    toggleFullBtn.addEventListener("click", () => {
+        const hidden = fullEl.classList.contains("d-none");
+        if (hidden) {
+            fullEl.classList.remove("d-none");
+            toggleFullBtn.textContent = "Hide full OCR text";
+        } else {
+            fullEl.classList.add("d-none");
+            toggleFullBtn.textContent = "Show full OCR text";
+        }
+    });
+
+    downloadBtn.addEventListener("click", async () => {
+        const payload = {
+            loanAmount: amountEl.value || "",
+            interestRate: rateEl.value || "",
+            termYears: termEl.value || "",
+            fees: feesEl.value || ""
+        };
+
+        try {
+            const res = await fetch("/api/ocr/summary.pdf", {
+                method: "POST",
+                headers: {"Content-Type":"application/json"},
+                body: JSON.stringify(payload)
+            });
+
+            if (!res.ok) {
+                const t = await res.text();
+                throw new Error(t || "PDF download failed");
+            }
+
+            const blob = await res.blob();
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = "ocr-summary.pdf";
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            URL.revokeObjectURL(url);
+        } catch (err) {
+            alert("Download error: " + err.message);
+        }
+    });
+
+    useCalcBtn.addEventListener("click", () => {
+        const payload = {
+            loanAmount: amountEl.value || "",
+            interestRate: rateEl.value || "",
+            termYears: termEl.value || "",
+            fees: feesEl.value || ""
+        };
+
+        localStorage.setItem("ocrCalculatorPrefill", JSON.stringify(payload));
+        window.location.href = "/calculator";
+    });
+
+
+
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    (function(){
+        const raw = localStorage.getItem("ocrCalculatorPrefill");
+        if(!raw) return;
+
+        let data = null;
+        try { data = JSON.parse(raw); } catch(e){ return; }
+
+
+        const amountEl = document.getElementById("amount");
+        const rateEl = document.getElementById("rate");
+        const termEl = document.getElementById("term");
+
+        if(amountEl && data.loanAmount) amountEl.value = data.loanAmount;
+        if(rateEl && data.interestRate) rateEl.value = data.interestRate;
+        if(termEl && data.termYears) termEl.value = data.termYears;
+
+        localStorage.removeItem("ocrCalculatorPrefill");
+    })();
+</script>
+
+
+</body>
+</html>

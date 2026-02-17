@@ -43,4 +43,13 @@ public class PageController {
         return "upload";     // upload.html
     }
 
+    @GetMapping("/ocr")
+    public String ocrPage() {
+        return "ocr"; // templates/ocr.html
+    }
+
+    @GetMapping("/video")
+    public String videoPage() {
+        return "video"; // templates/video.html
+    }
 }
